@@ -98,12 +98,11 @@ def create_social_media_image(title, image_path, output_path):
                 lines.append(" ".join(words[len(lines) * avg_words_per_line:]))
             return lines[:target_lines]
         else:
-            wrapped_lines = textwrap.wrap(text, width=30)  # Обычный перенос
+            wrapped_lines = textwrap.wrap(text, width=30)
             return wrapped_lines[:target_lines] + [""] * (target_lines - len(wrapped_lines))
 
     wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split)
 
-    # Проверка выхода за границы и уменьшение шрифта, если нужно (только для 4 строк)
     if target_lines == 4:
         while any(draw.textbbox((0, 0), line, font=font)[2] > max_text_width for line in wrapped_text):
             font_size -= 2
