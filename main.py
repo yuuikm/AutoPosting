@@ -1,11 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 import os
-import pandas as pd
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
+from datetime import datetime
+import locale
+from babel.dates import format_date
+import textwrap
+
+locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
 
 BASE_URL = "https://exclusive.kz/category/kontekst-dnya/"
-TARGET_DATE = "11 февраля, 2025"
+TARGET_DATE = format_date(datetime.today(), format="d MMMM, yyyy", locale="ru")
 
 TEMPLATE_PATH = "psd/post-image.png"
 IMAGE_DIR = "scraped_images"
@@ -23,7 +28,7 @@ def download_image(url, filename):
             for chunk in response.iter_content(1024):
                 file.write(chunk)
     else:
-        print(f"Не удалось скачать изображение: {url}")
+        print(f"❌ Не удалось скачать изображение: {url}")
 
 
 def wrap_text(draw, text, font, max_width):
@@ -43,7 +48,6 @@ def wrap_text(draw, text, font, max_width):
 
     lines.append(current_line)
     return "\n".join(lines)
-
 
 def create_social_media_image(title, image_path, output_path):
     template = Image.open(TEMPLATE_PATH).convert("RGBA")
@@ -69,56 +73,77 @@ def create_social_media_image(title, image_path, output_path):
     text_bottom = 947
     max_text_height = text_bottom - text_y
 
-    font_size = 80
-    line_spacing = 10
+    if len(title) <= 60:
+        font_size = 49
+        target_lines = 3
+        force_split = True
+    elif len(title) <= 90:
+        font_size = 49
+        target_lines = 3
+        force_split = False
+    else:
+        font_size = 35
+        target_lines = 4
+        force_split = False
+
     font = ImageFont.truetype(FONT_PATH, font_size)
 
-    wrapped_text = wrap_text(draw, title.upper(), font, max_text_width)
 
-    while True:
-        lines = wrapped_text.split("\n")
-        total_text_height = sum(
-            draw.textbbox((0, 0), line, font=font)[3] - draw.textbbox((0, 0), line, font=font)[1] for line in lines) + (
-                                        len(lines) - 1) * line_spacing
+    def fit_text_into_lines(text, font, max_width, target_lines, force_split):
+        if force_split:
+            words = text.split()
+            avg_words_per_line = len(words) // target_lines
+            lines = [" ".join(words[i * avg_words_per_line: (i + 1) * avg_words_per_line]) for i in range(target_lines)]
+            if len(lines) < target_lines:
+                lines.append(" ".join(words[len(lines) * avg_words_per_line:]))
+            return lines[:target_lines]
+        else:
+            wrapped_lines = textwrap.wrap(text, width=30)  # Обычный перенос
+            return wrapped_lines[:target_lines] + [""] * (target_lines - len(wrapped_lines))
 
-        if total_text_height <= max_text_height or font_size <= 30:
-            break
+    wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split)
 
-        font_size -= 2
-        line_spacing -= 1 if line_spacing > 5 else 0
-        font = ImageFont.truetype(FONT_PATH, font_size)
-        wrapped_text = wrap_text(draw, title.upper(), font, max_text_width)
+    # Проверка выхода за границы и уменьшение шрифта, если нужно (только для 4 строк)
+    if target_lines == 4:
+        while any(draw.textbbox((0, 0), line, font=font)[2] > max_text_width for line in wrapped_text):
+            font_size -= 2
+            font = ImageFont.truetype(FONT_PATH, font_size)
+            wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split)
+
+    ascent, descent = font.getmetrics()
+    line_height = ascent + descent
+    total_text_height = target_lines * line_height
 
     text_start_y = text_y + (max_text_height - total_text_height) // 2
     current_y = text_start_y
 
-    for line in wrapped_text.split("\n"):
+    for line in wrapped_text:
         draw.text((text_x, current_y), line, font=font, fill="white")
-        current_y += draw.textbbox((0, 0), line, font=font)[3] - draw.textbbox((0, 0), line, font=font)[
-            1] + line_spacing
+        current_y += line_height
 
     final_image.save(output_path)
-    print(f"✅ Создано изображение: {output_path}")
-
+    print(f"✅ Создано изображение: {output_path} (Шрифт: {font_size}px, Строк: {target_lines})")
 
 def scrape_page():
     url = BASE_URL
     data = []
     count = 1
     page_count = 0
-    max_pages = 3
+    max_pages = 1
+
+    print(f"🔍 Собираем новости за {TARGET_DATE}")
 
     while url and page_count < max_pages:
         response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
         if response.status_code != 200:
-            print("Ошибка загрузки страницы")
+            print("❌ Ошибка загрузки страницы")
             break
 
         soup = BeautifulSoup(response.text, "html.parser")
         items = soup.find_all("div", class_="section__item item")
 
         if not items:
-            print("Не найдено ни одной статьи. Проверь структуру HTML.")
+            print("❌ Не найдено ни одной статьи. Проверь структуру HTML.")
             break
 
         for item in items:
@@ -126,16 +151,22 @@ def scrape_page():
             image_tag = item.find("img", class_="item__image")
             time_tag = item.find("p", class_="item__time")
 
+            if time_tag:
+                post_date = time_tag.text.strip().lower()
+                if TARGET_DATE in post_date:
+                    print(f"✅ Найдена статья за {TARGET_DATE}: {post_date}")
+                else:
+                    print(f"❌ Дата не совпадает: {post_date} (ожидали {TARGET_DATE})")
+
             if title_tag and image_tag and time_tag:
                 post_date = time_tag.text.strip()
-                print(f"Дата поста: {post_date}")
 
                 if TARGET_DATE in post_date:
                     title = title_tag.find("a").text.strip()
                     image_url = image_tag.get("src", "").strip()
 
                     if not image_url:
-                        print(f"Не найдено изображение для: {title}")
+                        print(f"❌ Не найдено изображение для: {title}")
                         continue
 
                     print(f"{count}. {title}")
@@ -152,16 +183,9 @@ def scrape_page():
         next_page = soup.find("a", class_="next page-numbers")
         if next_page and page_count < max_pages:
             url = next_page.get("href")
-            print(f"Переход на следующую страницу: {url}")
+            print(f"➡ Переход на следующую страницу: {url}")
         else:
             url = None
-
-    if data:
-        df = pd.DataFrame(data, columns=["Title", "Date", "Image Path"])
-        df.to_excel("scraped_data.xlsx", index=False)
-        print("Данные успешно сохранены в scraped_data.xlsx")
-    else:
-        print("Данные не найдены. Проверь TARGET_DATE и структуру HTML.")
 
 
 if __name__ == "__main__":
