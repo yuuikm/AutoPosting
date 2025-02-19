@@ -1,3 +1,4 @@
 .env
 /generated_posts
 /scraped_images
+processed_articles.txt
