@@ -1,0 +1,144 @@
+import textwrap
+
+import requests
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance
+from bs4 import BeautifulSoup
+
+from shared.constants import EXCLUSIVE_TEMPLATE_PATH, FONT_PATH
+
+def extract_photo_author(article_url):
+    headers = {"User-Agent": "Mozilla/5.0"}
+    response = requests.get(article_url, headers=headers)
+
+    if response.status_code != 200:
+        print(f"❌ Ошибка загрузки страницы: {article_url}")
+        return "Фото: из открытых источников"
+
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    entry_content = soup.find("div", class_="entry-content")
+    if not entry_content:
+        print("❌ Не найден блок entry-content")
+        return "Фото: из открытых источников"
+
+    author_tag = entry_content.find("p", string=lambda text: text and "Фото" in text)
+
+    if author_tag:
+        return author_tag.get_text(strip=True)
+
+    return "Фото: из открытых источников"
+
+def fit_text_into_lines(text, font, max_width, target_lines, force_split, draw):
+    words = text.split()
+    lines = []
+    current_line = ""
+
+    for word in words:
+        test_line = (current_line + " " + word).strip()
+        text_width = draw.textbbox((0, 0), test_line, font=font)[2]
+
+        if text_width <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word
+
+        if len(lines) == target_lines - 1:
+            remaining_text = " ".join(words[words.index(word):])
+            lines.append(remaining_text)
+            break
+
+    if current_line and len(lines) < target_lines:
+        lines.append(current_line)
+
+    while len(lines) < target_lines:
+        lines.append("")
+
+    if force_split and target_lines == 3:
+        wrapped_lines = textwrap.wrap(text, width=len(text) // target_lines)
+        if len(wrapped_lines) == 3:
+            return wrapped_lines
+
+    return lines[:target_lines]
+
+def create_social_media_image(title, image_path, output_path, image_author):
+    template = Image.open(EXCLUSIVE_TEMPLATE_PATH).convert("RGBA")
+    news_image = Image.open(image_path).convert("RGB")
+
+    enhancer = ImageEnhance.Color(news_image)
+    news_image = enhancer.enhance(1.5)
+
+    target_height = 1000
+    aspect_ratio = news_image.width / news_image.height
+    new_width = int(target_height * aspect_ratio)
+    news_image = news_image.resize((new_width, target_height))
+
+    final_image = Image.new("RGB", template.size, (0, 0, 0))
+    x_offset = (template.width - new_width) // 2
+    final_image.paste(news_image, (x_offset, 0))
+    final_image.paste(template, (0, 0), mask=template)
+
+    draw = ImageDraw.Draw(final_image)
+    max_text_width = template.width - 86
+    text_x = 43
+    text_y = 792
+    text_bottom = 947
+    max_text_height = text_bottom - text_y
+
+    if len(title) <= 60:
+        font_size = 49
+        target_lines = 3
+        force_split = True
+    elif len(title) <= 90:
+        font_size = 49
+        target_lines = 3
+        force_split = False
+    else:
+        font_size = 35
+        target_lines = 4
+        force_split = True
+
+    font = ImageFont.truetype(FONT_PATH, font_size)
+    wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split, draw)
+
+    wrapped_text = [line for line in wrapped_text if line.strip()]
+
+    while len(wrapped_text) < target_lines:
+        words = " ".join(wrapped_text).split()
+        avg_words_per_line = len(words) // target_lines
+        wrapped_text = [" ".join(words[i * avg_words_per_line: (i + 1) * avg_words_per_line]) for i in
+                        range(target_lines)]
+
+    while any(draw.textbbox((0, 0), line, font=font)[2] > max_text_width for line in wrapped_text):
+        font_size -= 2
+        font = ImageFont.truetype(FONT_PATH, font_size)
+        wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split, draw)
+
+    ascent, descent = font.getmetrics()
+    line_height = ascent + descent
+    total_text_height = target_lines * line_height
+
+    text_start_y = text_y + (max_text_height - total_text_height) // 2
+    current_y = text_start_y
+
+    rect_x = 17
+    rect_width = 14
+    rect_height = total_text_height
+    rect_y = text_start_y
+
+    draw.rectangle(
+        [(rect_x, rect_y), (rect_x + rect_width, rect_y + rect_height)],
+        fill="#cc2321"
+    )
+
+    for line in wrapped_text:
+        draw.text((text_x, current_y), line, font=font, fill="white")
+        current_y += line_height
+
+    author_font = ImageFont.truetype(FONT_PATH, 15)
+    author_x = 17
+    author_y = 975
+    draw.text((author_x, author_y), image_author.upper(), font=author_font, fill=(255, 255, 255, 80))
+
+    final_image.save(output_path)
+    print(f"✅ Создано изображение: {output_path} (Шрифт: {font_size}px, Строк: {target_lines})")
