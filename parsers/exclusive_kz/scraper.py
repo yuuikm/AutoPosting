@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import asyncio
 from shared.constants import EXCLUSIVE_IMAGE_DIR, EXCLUSIVE_OUTPUT_DIR, EXCLUSIVE_TARGET_DATE
 from shared.config import USER_AGENT
-from .utils import download_image, load_processed_articles, save_processed_articles, add_processed_article
+from .utils import download_image, load_processed_articles, add_processed_article
 from .image_generator import create_social_media_image, extract_photo_author
 from .telegram_bot import send_to_telegram
 
@@ -77,28 +77,20 @@ def extract_article_content(article_url):
     soup = BeautifulSoup(response.text, "html.parser")
     content = []
 
-    title_tag = soup.find("h1", class_="section__title")
-    if title_tag:
-        content.append(f"**{title_tag.get_text(strip=True)}**\n")
-
     article_body = soup.find("div", class_="entry-content")
     if not article_body:
         return ""
 
     for element in article_body.find_all(["p", "blockquote", "strong", "a"], recursive=True):
-        text = element.get_text(strip=True)
+        text = element.get_text(" ", strip=True)
 
-        if element.name == "p":
-            if element.find("strong"):
-                content.append(f"**{text}**")
-            else:
-                content.append(text)
-        elif element.name == "blockquote":
-            content.append(f"> {text}")
-        elif element.name == "a":
-            link_url = element.get("href")
-            if link_url:
-                link_text = element.get_text(strip=True)
-                content.append(f"[{link_text}]({link_url})")
+        if element.name == "p" and text:
+            for link in element.find_all("a", href=True):
+                href = link["href"]
+                link_text = link.get_text(strip=True)
+                text = text.replace(link_text, f"[{link_text}]({href})")
+            content.append(text)
 
-    return "\n\n".join(content[:6])
+    clean_content = [line.strip() for line in content if line.strip()]
+    return "\n\n".join(clean_content[:10])
+

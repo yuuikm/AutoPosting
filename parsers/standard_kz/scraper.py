@@ -62,9 +62,6 @@ def extract_article_content(article_url):
                 text = text.replace(link_text, f"[{link_text}]({href})")
             content.append(text)
 
-        elif element.name == "blockquote" and text:
-            content.append(f"> {text}")
-
     clean_content = []
     seen = set()
     for line in content:

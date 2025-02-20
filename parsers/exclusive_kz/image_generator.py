@@ -29,11 +29,10 @@ def extract_photo_author(article_url):
                 author_text = link_tag.get_text(strip=True)
                 return f"Фото: {author_text}"
             else:
-                author_text = p.get_text(strip=True).replace("Фото", "").strip()
+                author_text = p.get_text(strip=True).replace("Фото", "").replace(":", "").strip()
                 return f"Фото: {author_text}"
 
     return "Фото: из открытых источников"
-
 
 def fit_text_into_lines(text, font, max_width, target_lines, force_split, draw):
     words = text.split()
