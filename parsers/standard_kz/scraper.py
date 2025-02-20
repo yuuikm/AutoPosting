@@ -3,8 +3,13 @@ from selenium import webdriver
 from selenium.webdriver.edge.service import Service
 from selenium.webdriver.edge.options import Options
 from bs4 import BeautifulSoup
-from config import BASE_URLS, today_date
+from shared.constants import STANDARD_TARGET_DATE
 import time
+
+BASE_URLS = [
+    "https://standard.kz/ru/post/archive",
+    "https://standard.kz/kz/post/archive"
+]
 
 def get_dynamic_html(url):
     options = Options()
@@ -37,7 +42,7 @@ def scrape_posts():
 
             post_datetime = cols[0].text.strip()
             post_date, post_time = post_datetime.split(" ")
-            if post_date != today_date:
+            if post_date != STANDARD_TARGET_DATE:
                 continue
 
             title_tag = cols[1].find("a")

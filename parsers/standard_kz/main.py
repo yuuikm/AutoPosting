@@ -4,10 +4,10 @@ import asyncio
 from scraper import scrape_posts
 from image_generator import create_social_media_image
 from telegram_bot import send_to_telegram
-from config import IMAGE_DIR, OUTPUT_DIR
+from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR
 
-os.makedirs(IMAGE_DIR, exist_ok=True)
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+os.makedirs(STANDARD_IMAGE_DIR, exist_ok=True)
+os.makedirs(STANDARD_OUTPUT_DIR, exist_ok=True)
 
 
 def download_image(url, filename):
@@ -28,13 +28,13 @@ def download_image(url, filename):
 
 posts = scrape_posts()
 for count, (post_datetime, title, post_url, image_url, image_author, text_content) in enumerate(posts, 1):
-    image_filename = f"{IMAGE_DIR}/post_{count}.jpg"
+    image_filename = f"{STANDARD_IMAGE_DIR}/post_{count}.jpg"
 
     if not download_image(image_url, image_filename):
         print(f"Пропускаем пост: {title}, так как изображение не загружено.")
         continue
 
-    output_image_path = f"{OUTPUT_DIR}/post_{count}.png"
+    output_image_path = f"{STANDARD_OUTPUT_DIR}/post_{count}.png"
 
     create_social_media_image(title, image_filename, image_author, output_image_path)
 

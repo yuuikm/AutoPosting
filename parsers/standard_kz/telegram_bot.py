@@ -1,6 +1,6 @@
 import asyncio
 from telegram import Bot
-from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
+from shared.config import STANDARD_TELEGRAM_BOT_TOKEN, STANDARD_TELEGRAM_CHANNEL_ID
 import re
 
 async def send_to_telegram(image_path, title, post_url, text_content):
@@ -22,6 +22,6 @@ async def send_to_telegram(image_path, title, post_url, text_content):
         truncated_text = re.sub(r"[^.!?]*$", "", truncated_text)
         caption = f"{flag_emoji} {truncated_text}\n\n🔗 [Читать на standard.kz]({post_url})"
 
-    async with Bot(token=TELEGRAM_BOT_TOKEN) as bot:
+    async with Bot(token=STANDARD_TELEGRAM_BOT_TOKEN) as bot:
         with open(image_path, "rb") as image:
-            await bot.send_photo(chat_id=TELEGRAM_CHANNEL_ID, photo=image, caption=caption, parse_mode="Markdown")
+            await bot.send_photo(chat_id=STANDARD_TELEGRAM_CHANNEL_ID, photo=image, caption=caption, parse_mode="Markdown")
