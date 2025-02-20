@@ -4,7 +4,7 @@ from aiogram.types import FSInputFile
 from shared.config import EXCLUSIVE_TELEGRAM_BOT_TOKEN, EXCLUSIVE_TELEGRAM_CHANNEL_ID
 
 async def send_to_telegram(image_path, post_url, article_content):
-    caption = f"{article_content[:950]}...\n\n[Читать полностью]({post_url})"
+    caption = f"{article_content[:950]}...\n\n[🔗 Читать на Exclusive.kz]({post_url})"
 
     async with Bot(token=EXCLUSIVE_TELEGRAM_BOT_TOKEN) as bot:
         try:

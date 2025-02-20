@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 
 def download_image(url, filename):
     response = requests.get(url, stream=True)
@@ -10,12 +11,21 @@ def download_image(url, filename):
     else:
         print(f"❌ Не удалось скачать изображение: {url}")
 
-def load_processed_articles(filename):
-    if not os.path.exists(filename):
-        return set()
-    with open(filename, "r", encoding="utf-8") as file:
-        return set(line.strip() for line in file.readlines())
+def load_processed_articles(filepath):
+    if not os.path.exists(filepath):
+        return {}
+    with open(filepath, "r", encoding="utf-8") as file:
+        return json.load(file)
 
-def save_processed_articles(filename, processed_articles):
-    with open(filename, "w", encoding="utf-8") as file:
-        file.writelines(f"{article}\n" for article in processed_articles)
+def save_processed_articles(filepath, processed_articles):
+    with open(filepath, "w", encoding="utf-8") as file:
+        json.dump(processed_articles, file, ensure_ascii=False, indent=4)
+
+def add_processed_article(filepath, article_title, article_url):
+    processed_articles = load_processed_articles(filepath)
+    processed_articles[article_title] = {
+        "url": article_url,
+        "status": "published"
+    }
+    save_processed_articles(filepath, processed_articles)
+

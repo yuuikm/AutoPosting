@@ -4,26 +4,25 @@ from bs4 import BeautifulSoup
 import asyncio
 from shared.constants import EXCLUSIVE_IMAGE_DIR, EXCLUSIVE_OUTPUT_DIR, EXCLUSIVE_TARGET_DATE
 from shared.config import USER_AGENT
-from .utils import download_image, load_processed_articles, save_processed_articles
+from .utils import download_image, load_processed_articles, save_processed_articles, add_processed_article
 from .image_generator import create_social_media_image, extract_photo_author
 from .telegram_bot import send_to_telegram
 
 BASE_URL = "https://exclusive.kz/category/kontekst-dnya/"
-PROCESSED_FILE = "data/exclusive_processed.txt"
+PROCESSED_FILE = "data/exclusive_processed.json"
 
 def scrape_page():
     url = BASE_URL
-    data = []
     count = 1
     page_count = 0
     max_pages = 1
 
-    # processed_articles = load_processed_articles()
+    processed_articles = load_processed_articles(PROCESSED_FILE)
 
     print(f"🔍 Собираем новости за {EXCLUSIVE_TARGET_DATE}")
 
     while url and page_count < max_pages:
-        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code != 200:
             print("❌ Ошибка загрузки страницы")
             break
@@ -44,9 +43,9 @@ def scrape_page():
             if title_tag and image_tag and article_url:
                 title = title_tag.get_text(strip=True)
 
-                # if title in processed_articles:
-                #     print(f"⏩ Уже обработано: {title}")
-                #     continue
+                if title in processed_articles:
+                    print(f"⏩ Уже обработано: {title}")
+                    continue
 
                 image_url = image_tag.get("src", "").strip()
                 if not image_url:
@@ -63,15 +62,13 @@ def scrape_page():
                 output_image_path = os.path.join(EXCLUSIVE_OUTPUT_DIR, f"post_{count}.png")
                 create_social_media_image(title, image_filename, output_image_path, image_author)
 
-                data.append([title, article_url, image_author, output_image_path])
-                # processed_articles.add(title)
+                # ✅ Публикация и сразу добавляем в обработанные
+                asyncio.run(send_to_telegram(output_image_path, article_url, article_content))
+                add_processed_article(PROCESSED_FILE, title, article_url)
+
                 count += 1
 
-                asyncio.run(send_to_telegram(output_image_path, article_url, article_content))
-
         page_count += 1
-
-    # save_processed_articles(processed_articles)
 
 def extract_article_content(article_url):
     response = requests.get(article_url, headers={"User-Agent": "Mozilla/5.0"})
