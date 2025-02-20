@@ -21,11 +21,16 @@ def save_processed_articles(filepath, processed_articles):
     with open(filepath, "w", encoding="utf-8") as file:
         json.dump(processed_articles, file, ensure_ascii=False, indent=4)
 
-def add_processed_article(filepath, article_title, article_url):
-    processed_articles = load_processed_articles(filepath)
-    processed_articles[article_title] = {
-        "url": article_url,
-        "status": "published"
-    }
-    save_processed_articles(filepath, processed_articles)
+def add_processed_article(file_path, title, url, status="processed"):
+    articles = load_processed_articles(file_path)
+    if not isinstance(articles, list):
+        articles = []
+
+    articles.append({
+        "title": title,
+        "url": url,
+        "status": status
+    })
+
+    save_processed_articles(file_path, articles)
 

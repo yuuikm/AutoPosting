@@ -1,27 +1,36 @@
 import asyncio
+import re
 from telegram import Bot
 from shared.config import STANDARD_TELEGRAM_BOT_TOKEN, STANDARD_TELEGRAM_CHANNEL_ID
-import re
 
 async def send_to_telegram(image_path, title, post_url, text_content):
-    caption_limit = 1024
-    text_limit = 995
+    CAPTION_LIMIT = 1024
+    TEXT_LIMIT = 995
+    KAZAKHSTAN_KEYWORDS = ["Казахстан", "Алматы", "Астана", "РК"]
 
-    paragraphs = text_content.split("\n")
-    kazakhstan_keywords = ["Казахстан", "Алматы", "Астана", "РК"]
-    flag_emoji = "🇰🇿" if any(word in text_content for word in kazakhstan_keywords) else "📰"
+    flag_emoji = "🇰🇿" if any(word in text_content for word in KAZAKHSTAN_KEYWORDS) else "📰"
+
+    paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
 
     if paragraphs:
         paragraphs[0] = f"**{paragraphs[0]}**"
-    text_content = "\n\n".join(paragraphs)
 
-    caption = f"{flag_emoji} {text_content}\n\n🔗 [Читать на standard.kz]({post_url})"
+    formatted_text = "\n\n".join(paragraphs)
 
-    if len(caption) > caption_limit:
-        truncated_text = text_content[:text_limit]
+    caption = f"{flag_emoji} {formatted_text}\n\n[🔗 Читать на Standard.kz]({post_url})"
+
+    if len(caption) > CAPTION_LIMIT:
+        truncated_text = formatted_text[:TEXT_LIMIT]
         truncated_text = re.sub(r"[^.!?]*$", "", truncated_text)
-        caption = f"{flag_emoji} {truncated_text}\n\n🔗 [Читать на standard.kz]({post_url})"
+        caption = f"{flag_emoji} {truncated_text}\n\n[🔗 Читать на Standard.kz]({post_url})"
 
     async with Bot(token=STANDARD_TELEGRAM_BOT_TOKEN) as bot:
         with open(image_path, "rb") as image:
-            await bot.send_photo(chat_id=STANDARD_TELEGRAM_CHANNEL_ID, photo=image, caption=caption, parse_mode="Markdown")
+            await bot.send_photo(
+                chat_id=STANDARD_TELEGRAM_CHANNEL_ID,
+                photo=image,
+                caption=caption,
+                parse_mode="Markdown"
+            )
+
+    print(f"✅ Публикация отправлена: {title}")
