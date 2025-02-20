@@ -16,17 +16,24 @@ def extract_photo_author(article_url):
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    entry_content = soup.find("div", class_="entry-content")
-    if not entry_content:
-        print("❌ Не найден блок entry-content")
+    content = soup.find("div", class_="entry-content")
+    if not content:
+        print("❌ Не найден основной контент статьи")
         return "Фото: из открытых источников"
 
-    author_tag = entry_content.find("p", string=lambda text: text and "Фото" in text)
-
-    if author_tag:
-        return author_tag.get_text(strip=True)
+    paragraphs = content.find_all("p")
+    for p in paragraphs:
+        if "Фото" in p.get_text():
+            link_tag = p.find("a")
+            if link_tag:
+                author_text = link_tag.get_text(strip=True)
+                return f"Фото: {author_text}"
+            else:
+                author_text = p.get_text(strip=True).replace("Фото", "").strip()
+                return f"Фото: {author_text}"
 
     return "Фото: из открытых источников"
+
 
 def fit_text_into_lines(text, font, max_width, target_lines, force_split, draw):
     words = text.split()
