@@ -19,7 +19,7 @@ def scrape_page():
 
     processed_articles = load_processed_articles(PROCESSED_FILE)
 
-    print(f"🔍 Собираем новости за {EXCLUSIVE_TARGET_DATE}")
+    print(f"🔍 Собираем новости за {EXCLUSIVE_TARGET_DATE} число")
 
     while url and page_count < max_pages:
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
@@ -37,8 +37,21 @@ def scrape_page():
         for item in items:
             title_tag = item.find("h2", class_="item__title")
             image_tag = item.find("img", class_="item__image")
+            date_tag = item.find("p", class_="item__time")
             link_tag = title_tag.find("a") if title_tag else None
             article_url = link_tag["href"] if link_tag else None
+
+            if not date_tag:
+                continue
+
+            try:
+                post_day = int(date_tag.get_text(strip=True).split()[0])
+            except (IndexError, ValueError):
+                continue
+
+            if post_day != EXCLUSIVE_TARGET_DATE:
+                print(f"⏩ Пропущена статья за {post_day} число")
+                continue
 
             if title_tag and image_tag and article_url:
                 title = title_tag.get_text(strip=True)
@@ -93,4 +106,3 @@ def extract_article_content(article_url):
 
     clean_content = [line.strip() for line in content if line.strip()]
     return "\n\n".join(clean_content[:10])
-
