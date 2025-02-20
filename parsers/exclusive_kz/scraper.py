@@ -62,7 +62,7 @@ def scrape_page():
                 output_image_path = os.path.join(EXCLUSIVE_OUTPUT_DIR, f"post_{count}.png")
                 create_social_media_image(title, image_filename, output_image_path, image_author)
 
-                asyncio.run(send_to_telegram(output_image_path, article_url, article_content))
+                asyncio.run(send_to_telegram(output_image_path, title, article_url, article_content))
                 add_processed_article(PROCESSED_FILE, title, article_url)
 
                 count += 1
