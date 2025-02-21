@@ -8,11 +8,11 @@ from selenium.webdriver.edge.options import Options
 from selenium.webdriver.edge.service import Service
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR, STANDARD_TARGET_DATE
-from shared.config import USER_AGENT
-from .utils import download_image, load_processed_articles, save_processed_articles, add_processed_article
+from shared.config import USER_AGENT, STANDARD_INSTAGRAM_USERNAME, STANDARD_INSTAGRAM_PASSWORD
+from .utils import download_image, load_processed_articles, add_processed_article
 from .image_generator import create_social_media_image
 from .telegram_bot import send_to_telegram
-
+import random
 
 BASE_URLS = [
     "https://standard.kz/ru/post/archive",
@@ -44,10 +44,6 @@ def extract_article_content(article_url):
     soup = BeautifulSoup(response.text, "html.parser")
     content = []
 
-    title_tag = soup.find("h1", class_="entry__title")
-    if title_tag:
-        content.append(f"**{title_tag.get_text(strip=True)}**")
-
     article_body = soup.find("div", class_="entry__article")
     if not article_body:
         return ""
@@ -77,6 +73,8 @@ def scrape_posts():
     count = 1
     processed_articles = load_processed_articles(PROCESSED_FILE)
     print(f"🔍 Собираем новости за {STANDARD_TARGET_DATE}")
+
+    posts = []
 
     for base_url in BASE_URLS:
         print(f"Загружаем страницу: {base_url}")
@@ -127,9 +125,34 @@ def scrape_posts():
             output_image_path = os.path.join(STANDARD_OUTPUT_DIR, f"post_{count}.png")
             create_social_media_image(title, image_filename, image_author, output_image_path)
 
-            asyncio.run(send_to_telegram(output_image_path, title, post_url, text_content))
+            posts.append({
+                "image_path": output_image_path,
+                "title": title,
+                "post_url": post_url,
+                "text_content": text_content
+            })
+
             add_processed_article(PROCESSED_FILE, title, post_url)
 
             count += 1
 
+    if posts:
+        asyncio.run(send_to_telegram_with_delay(posts))
+    else:
+        print("❌ Новых постов для публикации не найдено.")
+
     print("✅ Все посты обработаны успешно.")
+
+async def send_to_telegram_with_delay(posts):
+    for index, post in enumerate(posts):
+        image_path = post["image_path"]
+        post_url = post["post_url"]
+        text_content = post["text_content"]
+        title = post["title"]
+
+        await send_to_telegram(image_path, title, post_url, text_content)
+
+        if index < len(posts) - 1:
+            delay = random.randint(600, 780)
+            print(f"⏳ Ожидание {delay // 60} минут перед следующей публикацией...")
+            await asyncio.sleep(delay)

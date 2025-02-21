@@ -56,7 +56,8 @@ def scrape_page():
             if title_tag and image_tag and article_url:
                 title = title_tag.get_text(strip=True)
 
-                if title in processed_articles:
+                if any(article.get("title") == title and article.get("status") == "processed" for article in
+                       processed_articles):
                     print(f"⏩ Уже обработано: {title}")
                     continue
 

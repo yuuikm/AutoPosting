@@ -13,7 +13,7 @@ def download_image(url, filename):
 
 def load_processed_articles(filepath):
     if not os.path.exists(filepath):
-        return {}
+        return []
     with open(filepath, "r", encoding="utf-8") as file:
         return json.load(file)
 
@@ -26,11 +26,11 @@ def add_processed_article(file_path, title, url, status="processed"):
     if not isinstance(articles, list):
         articles = []
 
-    articles.append({
-        "title": title,
-        "url": url,
-        "status": status
-    })
-
-    save_processed_articles(file_path, articles)
+    if not any(article.get("title") == title for article in articles):
+        articles.append({
+            "title": title,
+            "url": url,
+            "status": status
+        })
+        save_processed_articles(file_path, articles)
 

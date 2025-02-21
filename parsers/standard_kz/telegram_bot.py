@@ -1,4 +1,3 @@
-import asyncio
 import re
 import json
 from telegram import Bot
@@ -7,7 +6,7 @@ from shared.constants import EMOJI_PATH
 
 async def send_to_telegram(image_path, title, post_url, text_content):
     CAPTION_LIMIT = 1024
-    TEXT_LIMIT = 995
+    TEXT_LIMIT = CAPTION_LIMIT - len(post_url) - 50
 
     with open(EMOJI_PATH, "r", encoding="utf-8") as f:
         emoji_rules = json.load(f)
@@ -32,12 +31,12 @@ async def send_to_telegram(image_path, title, post_url, text_content):
 
     formatted_text = "\n\n".join(paragraphs)
 
-    caption = f"{selected_emoji} {formatted_text}\n\n[🔗 Читать полный материал на Standard.kz]({post_url})"
+    caption = f"{selected_emoji} {formatted_text}\n\n[🔗 Читать на Standard.kz]({post_url})"
 
     if len(caption) > CAPTION_LIMIT:
         truncated_text = formatted_text[:TEXT_LIMIT]
         truncated_text = re.sub(r"[^.!?]*$", "", truncated_text)
-        caption = f"{selected_emoji} {truncated_text}\n\n[🔗 Читать полный материал на Standard.kz]({post_url})"
+        caption = f"{selected_emoji} {truncated_text}\n\n[🔗 Читать на Standard.kz]({post_url})"
 
     async with Bot(token=STANDARD_TELEGRAM_BOT_TOKEN) as bot:
         with open(image_path, "rb") as image:

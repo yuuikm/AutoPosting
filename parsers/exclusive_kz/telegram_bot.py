@@ -26,18 +26,19 @@ async def send_to_telegram(image_path, title, post_url, text_content):
     selected_emoji = " ".join(matched_emojis)
 
     paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
+    paragraphs = [p for p in paragraphs if not p.lower().startswith("фото:")]
 
     if paragraphs:
         paragraphs[0] = f"**{paragraphs[0]}**"
 
     formatted_text = "\n\n".join(paragraphs)
 
-    caption = f"{selected_emoji} {formatted_text}\n\n[🔗 Читать полный материал на Exclusive.kz]({post_url})"
+    caption = f"{selected_emoji} {formatted_text}\n\n[🔗 Читать на Exclusive.kz]({post_url})"
 
     if len(caption) > CAPTION_LIMIT:
         truncated_text = formatted_text[:TEXT_LIMIT]
         truncated_text = re.sub(r"[^.!?]*$", "", truncated_text)
-        caption = f"{selected_emoji} {truncated_text}\n\n[🔗 Читать полный материал на Exclusive.kz]({post_url})"
+        caption = f"{selected_emoji} {truncated_text}\n\n[🔗 Читать на Exclusive.kz]({post_url})"
 
     async with Bot(token=EXCLUSIVE_TELEGRAM_BOT_TOKEN) as bot:
         with open(image_path, "rb") as image:
