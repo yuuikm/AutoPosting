@@ -153,6 +153,6 @@ async def send_to_telegram_with_delay(posts):
         await send_to_telegram(image_path, title, post_url, text_content)
 
         if index < len(posts) - 1:
-            delay = random.randint(600, 780)
-            print(f"⏳ Ожидание {delay // 60} минут перед следующей публикацией...")
+            delay = random.randint(590, 780)
+            print(f"⏳ Ожидание {delay} секунд перед следующей публикацией...")
             await asyncio.sleep(delay)
