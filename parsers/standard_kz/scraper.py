@@ -4,9 +4,8 @@ import asyncio
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.edge.options import Options
-from selenium.webdriver.edge.service import Service
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR, STANDARD_TARGET_DATE
 from shared.config import USER_AGENT, STANDARD_INSTAGRAM_USERNAME, STANDARD_INSTAGRAM_PASSWORD
 from .utils import download_image, load_processed_articles, add_processed_article
@@ -27,8 +26,10 @@ def get_dynamic_html(url):
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
 
-    service = Service(EdgeChromiumDriverManager().install())
-    driver = webdriver.Edge(service=service, options=options)
+    service = Service("/usr/bin/chromedriver")
+
+    driver = webdriver.Chrome(service=service, options=options)
+    driver.get("https://www.google.com")
 
     driver.get(url)
     time.sleep(5)
