@@ -1,6 +1,7 @@
 import asyncio
 import re
 import json
+import requests
 from telegram import Bot
 from shared.config import EXCLUSIVE_TELEGRAM_BOT_TOKEN, EXCLUSIVE_TELEGRAM_CHANNEL_ID
 from shared.constants import EMOJI_PATH
@@ -42,7 +43,7 @@ async def send_to_telegram(image_path, title, post_url, text_content):
 
     async with Bot(token=EXCLUSIVE_TELEGRAM_BOT_TOKEN) as bot:
         with open(image_path, "rb") as image:
-            await bot.send_photo(
+            message = await bot.send_photo(
                 chat_id=EXCLUSIVE_TELEGRAM_CHANNEL_ID,
                 photo=image,
                 caption=caption,
@@ -50,3 +51,17 @@ async def send_to_telegram(image_path, title, post_url, text_content):
             )
 
     print(f"✅ Публикация отправлена: {title}")
+
+    return message.photo[-1].file_id
+
+def get_telegram_file_url(file_id):
+    file_info_url = f"https://api.telegram.org/bot{EXCLUSIVE_TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
+    response = requests.get(file_info_url)
+
+    if response.status_code == 200:
+        file_path = response.json()['result']['file_path']
+        file_url = f"https://api.telegram.org/file/bot{EXCLUSIVE_TELEGRAM_BOT_TOKEN}/{file_path}"
+        return file_url
+    else:
+        print(f"❌ Ошибка получения файла из Telegram: {response.text}")
+        return None

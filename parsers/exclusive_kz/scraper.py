@@ -4,9 +4,10 @@ from bs4 import BeautifulSoup
 import asyncio
 from shared.constants import EXCLUSIVE_IMAGE_DIR, EXCLUSIVE_OUTPUT_DIR, EXCLUSIVE_TARGET_DATE
 from shared.config import USER_AGENT
-from .utils import download_image, load_processed_articles, add_processed_article
-from .image_generator import create_social_media_image, extract_photo_author
-from .telegram_bot import send_to_telegram
+from parsers.exclusive_kz.utils import download_image, load_processed_articles, add_processed_article
+from parsers.exclusive_kz.image_generator import create_social_media_image, extract_photo_author
+from parsers.exclusive_kz.telegram_bot import send_to_telegram, get_telegram_file_url
+from parsers.exclusive_kz.instagram_publisher import publish_to_instagram
 
 BASE_URL = "https://exclusive.kz/category/kontekst-dnya/"
 PROCESSED_FILE = "data/exclusive_processed.json"
@@ -56,8 +57,7 @@ def scrape_page():
             if title_tag and image_tag and article_url:
                 title = title_tag.get_text(strip=True)
 
-                if any(article.get("title") == title and article.get("status") == "processed" for article in
-                       processed_articles):
+                if any(article.get("title") == title and article.get("status") == "processed" for article in processed_articles):
                     print(f"⏩ Уже обработано: {title}")
                     continue
 
@@ -76,9 +76,18 @@ def scrape_page():
                 output_image_path = os.path.join(EXCLUSIVE_OUTPUT_DIR, f"post_{count}.png")
                 create_social_media_image(title, image_filename, output_image_path, image_author)
 
-                asyncio.run(send_to_telegram(output_image_path, title, article_url, article_content))
-                add_processed_article(PROCESSED_FILE, title, article_url)
+                file_id = asyncio.run(send_to_telegram(output_image_path, title, article_url, article_content))
 
+                if file_id:
+                    public_image_url = get_telegram_file_url(file_id)
+                    if public_image_url:
+                        publish_to_instagram(public_image_url, title)
+                    else:
+                        print("❌ Не удалось получить публичный URL изображения")
+                else:
+                    print("❌ Ошибка отправки изображения в Telegram")
+
+                add_processed_article(PROCESSED_FILE, title, article_url)
                 count += 1
 
         page_count += 1
