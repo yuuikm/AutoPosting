@@ -3,11 +3,13 @@ import sys
 import os
 import asyncio
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from parsers.exclusive_kz import scraper as exclusive_scraper
 from shared.config import EXCLUSIVE_TELEGRAM_BOT_TOKEN, USER_ID
+from parsers.exclusive_kz.instagram_publisher import publish_to_instagram
+from parsers.exclusive_kz.facebook_publisher import publish_to_facebook
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -31,7 +33,7 @@ async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔍 Запускаем скрапер для Exclusive.kz...")
     try:
         await asyncio.to_thread(exclusive_scraper.scrape_page)
-        await update.message.reply_text("✅ Скрапер для Exclusive.kz завершил работу.")
+        await update.message.reply_text("✅ Скрапер для Exclusive.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook.")
     except Exception as e:
         await update.message.reply_text(f"❌ Произошла ошибка: {e}")
 

@@ -8,6 +8,7 @@ from parsers.exclusive_kz.utils import download_image, load_processed_articles, 
 from parsers.exclusive_kz.image_generator import create_social_media_image, extract_photo_author
 from parsers.exclusive_kz.telegram_bot import send_to_telegram, get_telegram_file_url
 from parsers.exclusive_kz.instagram_publisher import publish_to_instagram
+from parsers.exclusive_kz.facebook_publisher import publish_to_facebook
 
 BASE_URL = "https://exclusive.kz/category/kontekst-dnya/"
 PROCESSED_FILE = "data/exclusive_processed.json"
@@ -81,7 +82,11 @@ def scrape_page():
                 if file_id:
                     public_image_url = get_telegram_file_url(file_id)
                     if public_image_url:
-                        publish_to_instagram(public_image_url, title)
+                        publish_to_instagram(public_image_url, article_url, article_content)
+
+                        # short_content = article_content[:500]
+                        # publish_to_facebook(public_image_url, short_content, article_url)
+
                     else:
                         print("❌ Не удалось получить публичный URL изображения")
                 else:
