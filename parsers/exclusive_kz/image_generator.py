@@ -1,5 +1,4 @@
 import textwrap
-
 import requests
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 from bs4 import BeautifulSoup
@@ -15,7 +14,6 @@ def extract_photo_author(article_url):
         return "Фото: из открытых источников"
 
     soup = BeautifulSoup(response.text, "html.parser")
-
     content = soup.find("div", class_="entry-content")
     if not content:
         print("❌ Не найден основной контент статьи")
@@ -34,51 +32,46 @@ def extract_photo_author(article_url):
 
     return "Фото: из открытых источников"
 
-def fit_text_into_lines(text, font, max_width, target_lines, force_split, draw):
+def fit_text_dynamically(text, font, max_width, draw):
+    wrapped_lines = []
     words = text.split()
-    lines = []
     current_line = ""
 
     for word in words:
-        test_line = (current_line + " " + word).strip()
+        test_line = f"{current_line} {word}".strip()
         text_width = draw.textbbox((0, 0), test_line, font=font)[2]
 
         if text_width <= max_width:
             current_line = test_line
         else:
-            lines.append(current_line)
+            wrapped_lines.append(current_line)
             current_line = word
 
-        if len(lines) == target_lines - 1:
-            remaining_text = " ".join(words[words.index(word):])
-            lines.append(remaining_text)
-            break
+    if current_line:
+        wrapped_lines.append(current_line)
 
-    if current_line and len(lines) < target_lines:
-        lines.append(current_line)
-
-    while len(lines) < target_lines:
-        lines.append("")
-
-    if force_split and target_lines == 3:
-        wrapped_lines = textwrap.wrap(text, width=len(text) // target_lines)
-        if len(wrapped_lines) == 3:
-            return wrapped_lines
-
-    return lines[:target_lines]
+    return wrapped_lines
 
 def create_social_media_image(title, image_path, output_path, image_author):
     template = Image.open(EXCLUSIVE_TEMPLATE_PATH).convert("RGBA")
     news_image = Image.open(image_path).convert("RGB")
 
-    enhancer = ImageEnhance.Color(news_image)
-    news_image = enhancer.enhance(1.5)
+    color_enhancer = ImageEnhance.Color(news_image)
+    news_image = color_enhancer.enhance(1.5)
 
+    contrast_enhancer = ImageEnhance.Contrast(news_image)
+    news_image = contrast_enhancer.enhance(1.5)
+
+    brightness_enhancer = ImageEnhance.Brightness(news_image)
+    news_image = brightness_enhancer.enhance(1)
+
+    # ✅ Resize Image
     target_height = 1000
     aspect_ratio = news_image.width / news_image.height
     new_width = int(target_height * aspect_ratio)
     news_image = news_image.resize((new_width, target_height))
 
+    # ✅ Create final image
     final_image = Image.new("RGB", template.size, (0, 0, 0))
     x_offset = (template.width - new_width) // 2
     final_image.paste(news_image, (x_offset, 0))
@@ -91,42 +84,37 @@ def create_social_media_image(title, image_path, output_path, image_author):
     text_bottom = 947
     max_text_height = text_bottom - text_y
 
-    if len(title) <= 60:
+    # ✅ Determine font size based on character count
+    title_length = len(title)
+
+    if title_length <= 40:
+        font_size = 58
+    elif title_length <= 60:
         font_size = 49
-        target_lines = 3
-        force_split = True
-    elif len(title) <= 90:
-        font_size = 49
-        target_lines = 3
-        force_split = False
-    else:
+    elif title_length <= 90:
         font_size = 35
-        target_lines = 4
-        force_split = True
+    else:
+        font_size = 30  # Для длинных заголовков
 
     font = ImageFont.truetype(FONT_PATH, font_size)
-    wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split, draw)
 
-    wrapped_text = [line for line in wrapped_text if line.strip()]
+    # ✅ Wrap text dynamically
+    wrapped_text = fit_text_dynamically(title.upper(), font, max_text_width, draw)
 
-    while len(wrapped_text) < target_lines:
-        words = " ".join(wrapped_text).split()
-        avg_words_per_line = len(words) // target_lines
-        wrapped_text = [" ".join(words[i * avg_words_per_line: (i + 1) * avg_words_per_line]) for i in
-                        range(target_lines)]
-
+    # Adjust font size if text overflows
     while any(draw.textbbox((0, 0), line, font=font)[2] > max_text_width for line in wrapped_text):
         font_size -= 2
         font = ImageFont.truetype(FONT_PATH, font_size)
-        wrapped_text = fit_text_into_lines(title.upper(), font, max_text_width, target_lines, force_split, draw)
+        wrapped_text = fit_text_dynamically(title.upper(), font, max_text_width, draw)
 
+    # Center text vertically
     ascent, descent = font.getmetrics()
     line_height = ascent + descent
-    total_text_height = target_lines * line_height
-
+    total_text_height = len(wrapped_text) * line_height
     text_start_y = text_y + (max_text_height - total_text_height) // 2
     current_y = text_start_y
 
+    # ✅ Draw red rectangle on the left
     rect_x = 17
     rect_width = 14
     rect_height = total_text_height
@@ -147,4 +135,4 @@ def create_social_media_image(title, image_path, output_path, image_author):
     draw.text((author_x, author_y), image_author.upper(), font=author_font, fill=(255, 255, 255, 80))
 
     final_image.save(output_path)
-    print(f"✅ Создано изображение: {output_path} (Шрифт: {font_size}px, Строк: {target_lines})")
+    print(f"✅ Создано изображение: {output_path} (Шрифт: {font_size}px, Строк: {len(wrapped_text)})")

@@ -23,8 +23,14 @@ def create_social_media_image(title, image_path, image_author, output_path):
     template = Image.open(STANDARD_TEMPLATE_PATH).convert("RGBA")
     news_image = Image.open(image_path).convert("RGB")
 
-    enhancer = ImageEnhance.Color(news_image)
-    news_image = enhancer.enhance(1.5)
+    color_enhancer = ImageEnhance.Color(news_image)
+    news_image = color_enhancer.enhance(1.5)
+
+    contrast_enhancer = ImageEnhance.Contrast(news_image)
+    news_image = contrast_enhancer.enhance(1.5)
+
+    brightness_enhancer = ImageEnhance.Brightness(news_image)
+    news_image = brightness_enhancer.enhance(1)
 
     target_height = 1000
     aspect_ratio = news_image.width / news_image.height
