@@ -109,7 +109,6 @@ def scrape_posts():
 
             image_tag = post_soup.select_one("div.entry__img-holder img")
             author_tag = post_soup.select_one("div.entry__img-holder span")
-            article_tag = post_soup.select_one("div.entry__article")
 
             image_author = author_tag.text.strip() if author_tag else "Источник: Standard.kz"
             text_content = extract_article_content(post_url)
@@ -137,14 +136,9 @@ def scrape_posts():
 
             count += 1
 
-    if posts:
-        asyncio.run(send_to_telegram_with_delay(posts))
-    else:
-        print("❌ Новых постов для публикации не найдено.")
+    return posts
 
-    print("✅ Все посты обработаны успешно.")
-
-async def send_to_telegram_with_delay(posts):
+async def send_to_telegram_with_delay(posts, send_message_callback=None):
     for index, post in enumerate(posts):
         image_path = post["image_path"]
         post_url = post["post_url"]
@@ -155,5 +149,11 @@ async def send_to_telegram_with_delay(posts):
 
         if index < len(posts) - 1:
             delay = random.randint(590, 780)
+
             print(f"⏳ Ожидание {delay} секунд перед следующей публикацией...")
+
+            if send_message_callback:
+                await send_message_callback(f"⏳ Ожидание {delay} секунд перед следующей публикацией...")
+
             await asyncio.sleep(delay)
+

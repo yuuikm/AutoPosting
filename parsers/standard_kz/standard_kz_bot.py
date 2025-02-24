@@ -26,12 +26,10 @@ async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔍 Запускаем скрапер для Standard.kz...")
 
     try:
-        loop = asyncio.get_event_loop()
 
-        if asyncio.iscoroutinefunction(standard_scraper.scrape_posts):
-            await standard_scraper.scrape_posts()
-        else:
-            await loop.run_in_executor(None, standard_scraper.scrape_posts)
+        posts = await asyncio.to_thread(standard_scraper.scrape_posts)
+
+        await standard_scraper.send_to_telegram_with_delay(posts, send_message_callback=update.message.reply_text)
 
         await update.message.reply_text("✅ Скрапер для Standard.kz завершил работу.")
     except Exception as e:
