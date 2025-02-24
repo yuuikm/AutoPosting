@@ -65,13 +65,11 @@ def create_social_media_image(title, image_path, output_path, image_author):
     brightness_enhancer = ImageEnhance.Brightness(news_image)
     news_image = brightness_enhancer.enhance(1)
 
-    # ✅ Resize Image
     target_height = 1000
     aspect_ratio = news_image.width / news_image.height
     new_width = int(target_height * aspect_ratio)
     news_image = news_image.resize((new_width, target_height))
 
-    # ✅ Create final image
     final_image = Image.new("RGB", template.size, (0, 0, 0))
     x_offset = (template.width - new_width) // 2
     final_image.paste(news_image, (x_offset, 0))
@@ -84,7 +82,6 @@ def create_social_media_image(title, image_path, output_path, image_author):
     text_bottom = 947
     max_text_height = text_bottom - text_y
 
-    # ✅ Determine font size based on character count
     title_length = len(title)
 
     if title_length <= 40:
@@ -94,27 +91,23 @@ def create_social_media_image(title, image_path, output_path, image_author):
     elif title_length <= 90:
         font_size = 35
     else:
-        font_size = 30  # Для длинных заголовков
+        font_size = 30
 
     font = ImageFont.truetype(FONT_PATH, font_size)
 
-    # ✅ Wrap text dynamically
     wrapped_text = fit_text_dynamically(title.upper(), font, max_text_width, draw)
 
-    # Adjust font size if text overflows
     while any(draw.textbbox((0, 0), line, font=font)[2] > max_text_width for line in wrapped_text):
         font_size -= 2
         font = ImageFont.truetype(FONT_PATH, font_size)
         wrapped_text = fit_text_dynamically(title.upper(), font, max_text_width, draw)
 
-    # Center text vertically
     ascent, descent = font.getmetrics()
     line_height = ascent + descent
     total_text_height = len(wrapped_text) * line_height
     text_start_y = text_y + (max_text_height - total_text_height) // 2
     current_y = text_start_y
 
-    # ✅ Draw red rectangle on the left
     rect_x = 17
     rect_width = 14
     rect_height = total_text_height
