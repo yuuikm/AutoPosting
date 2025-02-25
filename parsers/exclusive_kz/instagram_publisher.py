@@ -40,6 +40,12 @@ def publish_to_instagram(image_url, post_url, text_content):
             f"#Новости #События"
         )
 
+        MAX_INSTAGRAM_CAPTION_LENGTH = 1900
+        if len(caption) > MAX_INSTAGRAM_CAPTION_LENGTH:
+            truncated_caption = caption[:MAX_INSTAGRAM_CAPTION_LENGTH]
+            truncated_caption = re.sub(r"[^.!?]*$", "", truncated_caption)
+            caption = truncated_caption
+
         upload_url = f"https://graph.facebook.com/v17.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media"
 
         data = {
