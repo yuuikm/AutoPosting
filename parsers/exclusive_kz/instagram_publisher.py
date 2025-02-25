@@ -23,7 +23,8 @@ def publish_to_instagram(image_url, post_url, text_content):
         selected_emoji = " ".join(matched_emojis)
 
         paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
-        paragraphs = [p for p in paragraphs if not p.lower().startswith("фото:")]
+
+        paragraphs = [p for p in paragraphs if not re.match(r"(?i)^фото[:\s]", p)]
 
         if paragraphs:
             paragraphs[0] = f"{selected_emoji} {paragraphs[0]}"
@@ -32,19 +33,22 @@ def publish_to_instagram(image_url, post_url, text_content):
 
         formatted_text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', formatted_text)
 
-        caption = (
-            f"{formatted_text}\n\n"
-            f"🌐 Наш сайт: exclusive.kz\n"
+        static_footer = (
+            f"\n\n🌐 Наш сайт: exclusive.kz\n"
             f"✅ Telegram канал: https://t.me/kzexclusive\n\n"
             f"Источник: {post_url}\n\n"
             f"#Новости #События"
         )
 
-        MAX_INSTAGRAM_CAPTION_LENGTH = 1900
-        if len(caption) > MAX_INSTAGRAM_CAPTION_LENGTH:
-            truncated_caption = caption[:MAX_INSTAGRAM_CAPTION_LENGTH]
-            truncated_caption = re.sub(r"[^.!?]*$", "", truncated_caption)
-            caption = truncated_caption
+        MAX_INSTAGRAM_CAPTION_LENGTH = 2200
+        max_content_length = MAX_INSTAGRAM_CAPTION_LENGTH - len(static_footer)
+
+        if len(formatted_text) > max_content_length:
+            truncated_text = formatted_text[:max_content_length]
+            truncated_text = re.sub(r"[^.!?]*$", "", truncated_text)
+            formatted_text = truncated_text
+
+        caption = f"{formatted_text}{static_footer}"
 
         upload_url = f"https://graph.facebook.com/v17.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media"
 
