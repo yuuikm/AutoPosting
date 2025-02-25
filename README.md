@@ -23,15 +23,16 @@ The parser uses **Selenium** and **BeautifulSoup** for data scraping, and **Tele
 - ✅ **Auto-Publishing to Telegram** — Instantly posts news to specified Telegram channels.
 - ✅ **Keyword-Based Emoji Tagging** — Adds emojis based on content topics (e.g., 🇰🇿, 💰, ⚽).
 - ✅ **Duplicate Article Detection** — Ensures no duplicate posts are published.
+- ✅ **Publish to Instagram** — Share articles as posts using Instagram API token.
+- ✅ **Error Notifications** — Send error alerts directly to an admin via Telegram bot.
+- ✅ **Bot Security** — Only certain users can send to bot commands, other user will get error message.
 
 ---
 
 ## 🛠️ Planned Features
-
-- 📘 **Publish to Facebook** — Expand content distribution to Facebook pages and groups.
-- 📸 **Publish to Instagram** — Share articles as posts or stories with optimized visuals.
-- 📝 **Log Management** — Store logs in dedicated log files instead of the console for better monitoring.
-- ⚠️ **Error Notifications** — Send error alerts directly to an admin via Telegram bot.
+- 📘 **Auto hashtags** — Add hashtags automatically, depends on post entry.
+- 🌐 **Geolocation** — Auto paste location of the post. If post conatins smth about America - tag Washington and etc.
+- 📘 **Publish to Facebook** — Expand content distribution to Facebook pages.
 - 🌐 **Deployment** — Fully deploy the project for continuous operation on a dedicated server.
 
 ---
