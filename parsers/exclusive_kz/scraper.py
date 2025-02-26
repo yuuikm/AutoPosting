@@ -110,9 +110,19 @@ def extract_article_content(article_url):
         return ""
 
     for element in article_body.find_all(["p", "blockquote", "strong", "a"], recursive=True):
-        text = element.get_text(" ", strip=True)
+        if element.name == "blockquote":
+            quote_text = element.get_text(" ", strip=True)
+            cite_tag = element.find("cite")
+            cite_text = cite_tag.get_text(" ", strip=True) if cite_tag else ""
 
-        if element.name == "p" and text:
+            if cite_text:
+                formatted_quote = f"\"{quote_text}\" — {cite_text}"
+            else:
+                formatted_quote = f"\"{quote_text}\""
+
+            content.append(formatted_quote)
+        elif element.name == "p":
+            text = element.get_text(" ", strip=True)
             for link in element.find_all("a", href=True):
                 href = link["href"]
                 link_text = link.get_text(strip=True)
@@ -121,3 +131,4 @@ def extract_article_content(article_url):
 
     clean_content = [line.strip() for line in content if line.strip()]
     return "\n\n".join(clean_content[:10])
+
