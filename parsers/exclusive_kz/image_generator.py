@@ -1,4 +1,3 @@
-import textwrap
 import requests
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 from bs4 import BeautifulSoup

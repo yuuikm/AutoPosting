@@ -4,12 +4,9 @@ import os
 import asyncio
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from parsers.exclusive_kz import scraper as exclusive_scraper
 from shared.config import EXCLUSIVE_TELEGRAM_BOT_TOKEN, USER_ID
-from parsers.exclusive_kz.instagram_publisher import publish_to_instagram
-from parsers.exclusive_kz.facebook_publisher import publish_to_facebook
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',

@@ -2,7 +2,7 @@ import requests
 import json
 import re
 import random
-from shared.config import EXCLUSIVE_FACEBOOK_PAGE_ID, EXCLUSIVE_FACEBOOK_ACCESS_TOKEN
+from shared.config import EXCLUSIVE_FACEBOOK_PAGE_ID, EXCLUSIVE_ACCESS_TOKEN
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
 
 def get_hashtags(text_content):
@@ -67,7 +67,7 @@ def publish_to_facebook(image_url, text_content, post_url):
         payload = {
             'url': image_url,
             'caption': full_message,
-            'access_token': EXCLUSIVE_FACEBOOK_ACCESS_TOKEN
+            'access_token': EXCLUSIVE_ACCESS_TOKEN
         }
 
         response = requests.post(post_url_fb, data=payload)

@@ -2,7 +2,7 @@ import requests
 import re
 import json
 import random
-from shared.config import EXCLUSIVE_INSTAGRAM_ACCESS_TOKEN, EXCLUSIVE_INSTAGRAM_ACCOUNT_ID
+from shared.config import EXCLUSIVE_ACCESS_TOKEN, EXCLUSIVE_INSTAGRAM_ACCOUNT_ID
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
 
 def get_hashtags(text_content):
@@ -76,7 +76,7 @@ def publish_to_instagram(image_url, post_url, text_content):
         data = {
             'image_url': image_url,
             'caption': caption,
-            'access_token': EXCLUSIVE_INSTAGRAM_ACCESS_TOKEN
+            'access_token': EXCLUSIVE_ACCESS_TOKEN
         }
 
         response = requests.post(upload_url, data=data)
@@ -91,7 +91,7 @@ def publish_to_instagram(image_url, post_url, text_content):
         publish_url = f"https://graph.facebook.com/v17.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
             'creation_id': media_id,
-            'access_token': EXCLUSIVE_INSTAGRAM_ACCESS_TOKEN
+            'access_token': EXCLUSIVE_ACCESS_TOKEN
         }
 
         publish_response = requests.post(publish_url, data=publish_data)
