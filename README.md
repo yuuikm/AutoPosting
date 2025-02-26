@@ -24,15 +24,15 @@ The parser uses **Selenium** and **BeautifulSoup** for data scraping, and **Tele
 - ✅ **Keyword-Based Emoji Tagging** — Adds emojis based on content topics (e.g., 🇰🇿, 💰, ⚽).
 - ✅ **Duplicate Article Detection** — Ensures no duplicate posts are published.
 - ✅ **Publish to Instagram** — Share articles as posts using Instagram API token.
+- ✅ **Publish to Facebook** — Share articles as posts using Facebook API token.
 - ✅ **Error Notifications** — Send error alerts directly to an admin via Telegram bot.
 - ✅ **Bot Security** — Only certain users can send to bot commands, other user will get error message.
+- ✅ **Auto hashtags** — Add hashtags automatically, depends on post entry.
 
 ---
 
 ## 🛠️ Planned Features
-- 📘 **Auto hashtags** — Add hashtags automatically, depends on post entry.
 - 🌐 **Geolocation** — Auto paste location of the post. If post conatins smth about America - tag Washington and etc.
-- 📘 **Publish to Facebook** — Expand content distribution to Facebook pages.
 - 🌐 **Deployment** — Fully deploy the project for continuous operation on a dedicated server.
 
 ---
