@@ -16,7 +16,7 @@ def get_hashtags(text_content):
             if re.search(rf"\b{re.escape(keyword)}\b", text_content, re.IGNORECASE):
                 found_hashtags.update(hashtags)
 
-        return random.sample(found_hashtags, min(len(found_hashtags), 3)) if found_hashtags else []
+        return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
 
     except Exception as e:
         print(f"⚠️ Ошибка загрузки хештегов: {e}")
@@ -55,8 +55,7 @@ def publish_to_facebook(image_url, text_content, post_url):
 
         static_footer = (
             f"\n\n🌐 Наш сайт: exclusive.kz\n"
-            f"✅ Telegram канал: https://t.me/kzexclusive\n\n"
-            f"Источник: {post_url}\n\n"
+            f"✅ Telegram канал: https://t.me/kzexclusive\n"
             f"#Новости #События {hashtags_str}"
         )
 
@@ -66,7 +65,7 @@ def publish_to_facebook(image_url, text_content, post_url):
 
         payload = {
             'url': image_url,
-            'caption': full_message,
+            'message': full_message,
             'access_token': EXCLUSIVE_ACCESS_TOKEN
         }
 

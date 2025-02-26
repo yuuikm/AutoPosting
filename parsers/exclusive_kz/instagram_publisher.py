@@ -16,7 +16,7 @@ def get_hashtags(text_content):
             if re.search(rf"\b{re.escape(keyword)}\b", text_content, re.IGNORECASE):
                 found_hashtags.update(hashtags)
 
-        return random.sample(found_hashtags, min(len(found_hashtags), 3)) if found_hashtags else []
+        return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
 
     except Exception as e:
         print(f"⚠️ Ошибка загрузки хештегов: {e}")
