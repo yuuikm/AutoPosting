@@ -4,13 +4,12 @@ import re
 from shared.config import EXCLUSIVE_FACEBOOK_PAGE_ID, EXCLUSIVE_FACEBOOK_ACCESS_TOKEN
 from shared.constants import EMOJI_PATH
 
-def publish_to_facebook(image_url: object, text_content: object, post_url: object) -> object:
+def publish_to_facebook(image_url, text_content, post_url):
     try:
         with open(EMOJI_PATH, "r", encoding="utf-8") as f:
             emoji_rules = json.load(f)
 
         matched_emojis = []
-
         for emoji, keywords in emoji_rules.items():
             if any(re.search(rf"\b{re.escape(word)}\b", text_content, re.IGNORECASE) for word in keywords):
                 matched_emojis.append(emoji)
@@ -21,6 +20,8 @@ def publish_to_facebook(image_url: object, text_content: object, post_url: objec
             matched_emojis = ["📰"]
 
         selected_emoji = " ".join(matched_emojis)
+
+        text_content = re.sub(r'\[([^\]]+)\]', r'\1', text_content)
 
         paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
         paragraphs = [p for p in paragraphs if not re.match(r"(?i)^фото[:\s]", p)]

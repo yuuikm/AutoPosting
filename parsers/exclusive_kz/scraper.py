@@ -84,8 +84,8 @@ def scrape_page():
                     if public_image_url:
                         publish_to_instagram(public_image_url, article_url, article_content)
 
-                        # short_content: str = article_content[:500]
-                        # publish_to_facebook(public_image_url, short_content, article_url)
+                        short_content: str = article_content[:500]
+                        publish_to_facebook(public_image_url, short_content, article_url)
 
                     else:
                         print("❌ Не удалось получить публичный URL изображения")
