@@ -1,8 +1,26 @@
 import requests
 import json
 import re
+import random
 from shared.config import EXCLUSIVE_FACEBOOK_PAGE_ID, EXCLUSIVE_FACEBOOK_ACCESS_TOKEN
-from shared.constants import EMOJI_PATH
+from shared.constants import EMOJI_PATH, HASHTAGS_PATH
+
+def get_hashtags(text_content):
+    try:
+        with open(HASHTAGS_PATH, "r", encoding="utf-8") as f:
+            hashtag_rules = json.load(f)
+
+        found_hashtags = set()
+
+        for keyword, hashtags in hashtag_rules.items():
+            if re.search(rf"\b{re.escape(keyword)}\b", text_content, re.IGNORECASE):
+                found_hashtags.update(hashtags)
+
+        return random.sample(found_hashtags, min(len(found_hashtags), 3)) if found_hashtags else []
+
+    except Exception as e:
+        print(f"⚠️ Ошибка загрузки хештегов: {e}")
+        return []
 
 def publish_to_facebook(image_url, text_content, post_url):
     try:
@@ -21,6 +39,7 @@ def publish_to_facebook(image_url, text_content, post_url):
 
         selected_emoji = " ".join(matched_emojis)
 
+        text_content = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text_content)
         text_content = re.sub(r'\[([^\]]+)\]', r'\1', text_content)
 
         paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
@@ -31,15 +50,14 @@ def publish_to_facebook(image_url, text_content, post_url):
         else:
             primary_content = f"{selected_emoji} {text_content[:250]}"
 
-        if len(primary_content) > 250:
-            primary_content = primary_content[:250]
-            primary_content = re.sub(r"[^.!?]*$", "", primary_content)
+        hashtags = get_hashtags(text_content)
+        hashtags_str = " ".join(hashtags)
 
         static_footer = (
             f"\n\n🌐 Наш сайт: exclusive.kz\n"
-            f"✅ Telegram канал: https://t.me/kzexclusive\n"
-            f"Источник: {post_url}\n"
-            f"#Новости #События"
+            f"✅ Telegram канал: https://t.me/kzexclusive\n\n"
+            f"Источник: {post_url}\n\n"
+            f"#Новости #События {hashtags_str}"
         )
 
         full_message = f"{primary_content}{static_footer}"

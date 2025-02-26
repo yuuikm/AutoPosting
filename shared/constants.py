@@ -11,4 +11,5 @@ STANDARD_IMAGE_DIR = "data/standard_scraped_images"
 STANDARD_OUTPUT_DIR = "data/standard_generated_posts"
 
 EMOJI_PATH = "data/emoji_rules.json"
+HASHTAGS_PATH = "data/hashtags.json"
 FONT_PATH = "data/fonts/Montserrat-Bold.ttf"

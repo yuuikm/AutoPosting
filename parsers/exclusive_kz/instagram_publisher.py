@@ -1,8 +1,26 @@
 import requests
 import re
 import json
+import random
 from shared.config import EXCLUSIVE_INSTAGRAM_ACCESS_TOKEN, EXCLUSIVE_INSTAGRAM_ACCOUNT_ID
-from shared.constants import EMOJI_PATH
+from shared.constants import EMOJI_PATH, HASHTAGS_PATH
+
+def get_hashtags(text_content):
+    try:
+        with open(HASHTAGS_PATH, "r", encoding="utf-8") as f:
+            hashtag_rules = json.load(f)
+
+        found_hashtags = set()
+
+        for keyword, hashtags in hashtag_rules.items():
+            if re.search(rf"\b{re.escape(keyword)}\b", text_content, re.IGNORECASE):
+                found_hashtags.update(hashtags)
+
+        return random.sample(found_hashtags, min(len(found_hashtags), 3)) if found_hashtags else []
+
+    except Exception as e:
+        print(f"⚠️ Ошибка загрузки хештегов: {e}")
+        return []
 
 def publish_to_instagram(image_url, post_url, text_content):
     try:
@@ -33,11 +51,14 @@ def publish_to_instagram(image_url, post_url, text_content):
 
         formatted_text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', formatted_text)
 
+        hashtags = get_hashtags(text_content)
+        hashtags_str = " ".join(hashtags)
+
         static_footer = (
             f"\n\n🌐 Наш сайт: exclusive.kz\n"
             f"✅ Telegram канал: https://t.me/kzexclusive\n\n"
             f"Источник: {post_url}\n\n"
-            f"#Новости #События"
+            f"#Новости #События {hashtags_str}"
         )
 
         MAX_INSTAGRAM_CAPTION_LENGTH = 2200
