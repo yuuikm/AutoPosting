@@ -27,7 +27,7 @@ async def send_to_telegram(image_path, title, post_url, text_content):
     selected_emoji = " ".join(matched_emojis)
 
     paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
-    paragraphs = [p for p in paragraphs if not p.lower().startswith("фото:")]
+    paragraphs = [p for p in paragraphs if not re.match(r"(?i)^фото[:\s]", p)]
 
     if paragraphs:
         paragraphs[0] = f"**{paragraphs[0]}**"
