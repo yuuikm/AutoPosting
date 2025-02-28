@@ -85,7 +85,7 @@ def create_social_media_image(title, image_path, output_path, image_author):
 
     if title_length <= 40:
         font_size = 58
-    elif title_length <= 70:
+    elif title_length <= 65:
         font_size = 49
     elif title_length <= 90:
         font_size = 35
