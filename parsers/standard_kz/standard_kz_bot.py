@@ -2,6 +2,7 @@ import logging
 import sys
 import os
 import asyncio
+import random
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
@@ -26,12 +27,58 @@ async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🔍 Запускаем скрапер для Standard.kz...")
 
     try:
-
         posts = await asyncio.to_thread(standard_scraper.scrape_posts)
 
-        await standard_scraper.send_to_telegram_with_delay(posts, send_message_callback=update.message.reply_text)
+        if not posts:
+            await update.message.reply_text("❌ Нет новых постов для публикации.")
+            return
 
-        await update.message.reply_text("✅ Скрапер для Standard.kz завершил работу.")
+        for index, post in enumerate(posts):
+            title = post["title"]
+            await update.message.reply_text(f"📤 Отправка в Telegram: {title}")
+
+            file_id = await standard_scraper.send_to_telegram(
+                post["image_path"], title, post["post_url"], post["text_content"],
+                send_message_callback=lambda message: context.bot.send_message(
+                    chat_id=update.effective_chat.id, text=message
+                )
+            )
+
+            if not file_id:
+                await update.message.reply_text(f"❌ Ошибка отправки {title} в Telegram! Пропускаем Instagram и Facebook.")
+                continue
+
+            await update.message.reply_text(f"✅ Telegram отправлен: {title}")
+
+            public_image_url = standard_scraper.get_telegram_file_url(file_id)
+
+            if not public_image_url:
+                await update.message.reply_text(f"❌ Ошибка: не удалось получить URL изображения из Telegram для {title}.")
+                continue
+
+            await update.message.reply_text(f"📷 Публикация в Instagram: {title}")
+            try:
+                standard_scraper.publish_to_instagram_standard(public_image_url, post["post_url"], post["text_content"])
+                await update.message.reply_text(f"✅ Instagram опубликован: {title}")
+            except Exception as e:
+                await update.message.reply_text(f"❌ Ошибка Instagram: {e}")
+
+            await update.message.reply_text(f"📘 Публикация в Facebook: {title}")
+            try:
+                standard_scraper.publish_to_facebook_standard(public_image_url, post["post_url"], post["text_content"])
+                await update.message.reply_text(f"✅ Facebook опубликован: {title}")
+            except Exception as e:
+                await update.message.reply_text(f"❌ Ошибка Facebook: {e}")
+
+            if index < len(posts) - 1:
+                delay = random.randint(250, 600)
+                await context.bot.send_message(
+                    chat_id=update.effective_chat.id,
+                    text=f"⏳ Ожидание {delay} секунд перед следующим постом..."
+                )
+                await asyncio.sleep(delay)
+
+        await update.message.reply_text("✅ Скрапер для Standard.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook..")
     except Exception as e:
         await update.message.reply_text(f"❌ Произошла ошибка: {e}")
 

@@ -2,16 +2,18 @@ import requests
 import os
 import asyncio
 import time
+import random
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR, STANDARD_TARGET_DATE
-from shared.config import USER_AGENT, STANDARD_INSTAGRAM_USERNAME, STANDARD_INSTAGRAM_PASSWORD
+from shared.config import USER_AGENT
 from .utils import download_image, load_processed_articles, add_processed_article
 from .image_generator import create_social_media_image
-from .telegram_bot import send_to_telegram
-import random
+from .telegram_bot import send_to_telegram, get_telegram_file_url
+from .instagram_publisher import publish_to_instagram_standard
+from .facebook_publisher import publish_to_facebook_standard
 
 BASE_URLS = [
     "https://standard.kz/ru/post/archive",
@@ -29,8 +31,6 @@ def get_dynamic_html(url):
     service = Service("/usr/bin/chromedriver")
 
     driver = webdriver.Chrome(service=service, options=options)
-    driver.get("https://www.google.com")
-
     driver.get(url)
     time.sleep(5)
     html = driver.page_source
@@ -67,7 +67,6 @@ def extract_article_content(article_url):
             seen.add(line)
 
     formatted_content = "\n\n".join(clean_content[:10])
-
     return formatted_content
 
 def scrape_posts():
@@ -78,7 +77,7 @@ def scrape_posts():
     posts = []
 
     for base_url in BASE_URLS:
-        print(f"Загружаем страницу: {base_url}")
+        print(f"📄 Загружаем страницу: {base_url}")
         html = get_dynamic_html(base_url)
         soup = BeautifulSoup(html, "html.parser")
         rows = soup.select("table.table-striped tbody tr")[1:]
@@ -133,27 +132,90 @@ def scrape_posts():
             })
 
             add_processed_article(PROCESSED_FILE, title, post_url)
-
             count += 1
 
-    return posts
+    print(f"✅ Собрано {len(posts)} постов. Передаю их на публикацию...")
 
-async def send_to_telegram_with_delay(posts, send_message_callback=None):
+    asyncio.run(send_to_social_media(posts))
+
+
+async def send_to_social_media(posts, send_message_callback=None):
+
+    print("🚀 Начинаем публикацию в Telegram, Instagram и Facebook...")
+    if send_message_callback:
+        await send_message_callback("🚀 Начинаем публикацию в Telegram, Instagram и Facebook...")
+
+    if not posts:
+        print("❌ Ошибка: нет постов для публикации.")
+        if send_message_callback:
+            await send_message_callback("📰 Ошибка: нет постов для публикации.")
+        return
+
     for index, post in enumerate(posts):
         image_path = post["image_path"]
         post_url = post["post_url"]
         text_content = post["text_content"]
         title = post["title"]
 
-        await send_to_telegram(image_path, title, post_url, text_content)
+        print(f"📤 Отправка в Telegram: {title}")
+        if send_message_callback:
+            await send_message_callback(f"📤 Отправка в Telegram: {title}")
+
+        file_id = await send_to_telegram(image_path, title, post_url, text_content)
+
+        if not file_id:
+            error_msg = f"❌ Ошибка: Telegram НЕ ОТПРАВИЛ {title}! Пропускаем Instagram и Facebook."
+            print(error_msg)
+            if send_message_callback:
+                await send_message_callback(error_msg)
+            continue
+
+        print(f"✅ Telegram отправлен. file_id: {file_id}")
+        if send_message_callback:
+            await send_message_callback(f"✅ Telegram отправлен. file_id: `{file_id}`")
+
+        public_image_url = get_telegram_file_url(file_id)
+
+        if not public_image_url:
+            error_msg = f"❌ Ошибка: не удалось получить URL изображения из Telegram для {title}."
+            print(error_msg)
+            if send_message_callback:
+                await send_message_callback(error_msg)
+            continue
+
+        print(f"📷 Публикация в Instagram: {title}")
+        if send_message_callback:
+            await send_message_callback(f"📷 Публикация в Instagram: {title}")
+
+        try:
+            publish_to_instagram_standard(public_image_url, post_url, text_content)
+            print(f"✅ Успешно опубликовано в Instagram: {title}")
+            if send_message_callback:
+                await send_message_callback(f"✅ Успешно опубликовано в Instagram: {title}")
+        except Exception as e:
+            error_msg = f"❌ Ошибка публикации в Instagram: {e}"
+            print(error_msg)
+            if send_message_callback:
+                await send_message_callback(error_msg)
+
+        print(f"📘 Публикация в Facebook: {title}")
+        if send_message_callback:
+            await send_message_callback(f"📘 Публикация в Facebook: {title}")
+
+        try:
+            publish_to_facebook_standard(public_image_url, post_url, text_content)
+            print(f"✅ Успешно опубликовано в Facebook: {title}")
+            if send_message_callback:
+                await send_message_callback(f"✅ Успешно опубликовано в Facebook: {title}")
+        except Exception as e:
+            error_msg = f"❌ Ошибка публикации в Facebook: {e}"
+            print(error_msg)
+            if send_message_callback:
+                await send_message_callback(error_msg)
 
         if index < len(posts) - 1:
-            delay = random.randint(220, 600)
-
-            print(f"⏳ Ожидание {delay} секунд перед следующей публикацией...")
-
+            delay = random.randint(250, 600)
+            print(f"⏳ Ожидание {delay} секунд перед следующим постом...")
             if send_message_callback:
-                await send_message_callback(f"⏳ Ожидание {delay} секунд перед следующей публикацией...")
-
+                await send_message_callback(f"⏳ Ожидание {delay} секунд перед следующим постом...")
             await asyncio.sleep(delay)
-
