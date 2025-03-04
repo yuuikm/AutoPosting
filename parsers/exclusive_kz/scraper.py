@@ -107,17 +107,24 @@ def extract_article_content(article_url):
     if not article_body:
         return ""
 
+    seen_quotes = set()
+
     for element in article_body.find_all(["p", "blockquote"], recursive=True):
         if element.name == "blockquote":
             quote_text = element.get_text(" ", strip=True)
             cite_tag = element.find("cite")
             cite_text = cite_tag.get_text(" ", strip=True) if cite_tag else ""
 
-            formatted_quote = f"{quote_text}" if not cite_text else f"{quote_text} — {cite_text}"
-            content.append(formatted_quote)
+            formatted_quote = f"{quote_text} — {cite_text}" if cite_text else quote_text
+
+            if formatted_quote not in seen_quotes:
+                content.append(formatted_quote)
+                seen_quotes.add(formatted_quote)
+
         elif element.name == "p":
             text = element.get_text(" ", strip=True)
             content.append(text)
 
     clean_content = list(dict.fromkeys([line.strip() for line in content if line.strip()]))
     return "\n\n".join(clean_content[:10])
+
