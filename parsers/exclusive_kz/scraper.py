@@ -122,9 +122,16 @@ def extract_article_content(article_url):
                 seen_quotes.add(formatted_quote)
 
         elif element.name == "p":
+            for a in element.find_all("a", href=True):
+                href = a["href"]
+                if href.startswith("http://@") or href.startswith("@"):
+                    a["href"] = "https://t.me/" + href.lstrip("http://@").lstrip("@")
+
             text = element.get_text(" ", strip=True)
+            text = text.replace("\xa0", " ")
             content.append(text)
 
     clean_content = list(dict.fromkeys([line.strip() for line in content if line.strip()]))
     return "\n\n".join(clean_content[:10])
+
 
