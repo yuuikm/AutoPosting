@@ -42,15 +42,15 @@ async def send_to_telegram(image_path, title, post_url, text_content, send_messa
 
         cleaned_text = clean_text(text_content)
         safe_text_content = escape_html(cleaned_text)
-
+        
         formatted_text = format_text_with_tabs(safe_text_content)
 
-        caption = f"{selected_emoji} {formatted_text}\n\n🔗 <a href='{safe_post_url}'>Читать на Standard.kz</a>"
+        caption = f"{selected_emoji} {formatted_text}\n\n <a href='{safe_post_url}'>🔗 Читать на Standard.kz</a>"
 
         if len(caption) > CAPTION_LIMIT:
             truncated_text = formatted_text[:TEXT_LIMIT]
             truncated_text = re.sub(r"[^.!?]*$", "", truncated_text)
-            caption = f"{selected_emoji} {truncated_text}\n\n🔗 <a href='{safe_post_url}'>Читать на Standard.kz</a>"
+            caption = f"{selected_emoji} {truncated_text}\n\n <a href='{safe_post_url}'>🔗 Читать на Standard.kz</a>"
 
         async with Bot(token=STANDARD_TELEGRAM_BOT_TOKEN) as bot:
             with open(image_path, "rb") as image:
