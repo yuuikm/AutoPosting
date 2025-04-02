@@ -31,7 +31,7 @@ async def send_to_telegram(image_path, title, post_url, text_content):
     if paragraphs:
         paragraphs[0] = f"**{paragraphs[0]}**"
 
-    formatted_text = "\n\n".join(paragraphs)
+    formatted_text = ("\n\n".join(paragraphs))
 
     caption = f"{selected_emoji} {formatted_text}\n\n[🔗 Читать на Exclusive.kz]({post_url})"
 
