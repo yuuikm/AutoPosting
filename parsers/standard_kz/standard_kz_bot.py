@@ -14,31 +14,34 @@ from shared.config import STANDARD_TELEGRAM_BOT_TOKEN, USER_ID
 logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Standard.kz бот активен. Напиши /run для запуска.")
+    await update.message.reply_text("🚀 Standard.kz бот активен. Напиши /run для запуска.")
 
 async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != USER_ID:
         return
 
-    await update.message.reply_text("Запуск скрапера...")
+    await update.message.reply_text("🚀 Запуск скрапера Standard.kz")
 
     try:
         await asyncio.to_thread(standard_scraper.scrape_posts)
-        await update.message.reply_text("Публикация завершена.")
+        await update.message.reply_text("Скрапер для Standard.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook.")
     except Exception as e:
-        await update.message.reply_text(f"Ошибка: {e}")
+        await update.message.reply_text(f"❌ Произошла ошибка: {e}")
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != USER_ID:
         return
-    await update.message.reply_text("Бот работает.")
+    await update.message.reply_text("🚀 Бот работает и готов к выполнению команд.")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "/start — запуск бота\n"
-        "/run — запуск скрапера\n"
-        "/status — статус бота\n"
-        "/help — справка"
+        "📋 *Доступные команды:*\n"
+        "/start \\- Запустить бота\n"
+        "/run \\- Запустить скрапер\n"
+        "/status \\- Проверка статуса бота\n"
+        "/help \\- Справка\n\n"
+        "👉 [Подробнее о работе бота на GitHub](https://github.com/yuuikm/AutoPosting)",
+        parse_mode="MarkdownV2"
     )
 
 if __name__ == '__main__':

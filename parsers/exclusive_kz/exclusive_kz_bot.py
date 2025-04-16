@@ -27,7 +27,8 @@ async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("У тебя нет прав для запуска скрапера.")
         return
 
-    await update.message.reply_text("Запускаем скрапер для Exclusive.kz...")
+
+    await update.message.reply_text("🚀 Запуск скрапера Exclusive.kz")
     try:
         await asyncio.to_thread(exclusive_scraper.scrape_page)
         await update.message.reply_text("Скрапер для Exclusive.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook.")
@@ -39,7 +40,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("У тебя нет прав для проверки статуса.")
         return
 
-    await update.message.reply_text("Бот работает и готов к выполнению команд.")
+    await update.message.reply_text("🚀 Бот работает и готов к выполнению команд.")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
@@ -59,6 +60,4 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("run", run_scraper))
     app.add_handler(CommandHandler("status", status))
     app.add_handler(CommandHandler("help", help_command))
-
-    print("🚀 Exclusive.kz Telegram бот запущен!")
     app.run_polling()
