@@ -16,8 +16,7 @@ def get_hashtags(text_content):
                 found_hashtags.update(hashtags)
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
-    except Exception as e:
-        print(f"⚠️ Ошибка загрузки хештегов: {e}")
+    except:
         return []
 
 def publish_to_instagram_standard(image_url, post_url, text_content):
@@ -75,12 +74,9 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
         response = requests.post(upload_url, data=data)
 
         if response.status_code != 200:
-            print(f"❌ Instagram не принял изображение: {data['image_url']}")
-            print(f"📄 Ответ от Instagram: {response.text}")
             raise Exception("Instagram image upload failed")
 
         media_id = response.json().get("id")
-        print(f"✅ Медиа загружено. Media ID: {media_id}")
 
         publish_url = f"https://graph.facebook.com/v17.0/{STANDARD_INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
@@ -90,11 +86,8 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
 
         publish_response = requests.post(publish_url, data=publish_data)
 
-        if publish_response.status_code == 200:
-            print("🎉 Публикация успешно создана в Instagram (Standard.kz)!")
-        else:
-            print(f"❌ Ошибка публикации в Instagram: {publish_response.text}")
+        if publish_response.status_code != 200:
             raise Exception("Instagram publish failed")
 
     except Exception as e:
-        print(f"⚠️ Ошибка при публикации в Instagram: {e}")
+        print(f"Ошибка публикации в Instagram: {e}")

@@ -83,12 +83,8 @@ def create_social_media_image(title, image_path, image_author, output_path):
     draw.text((author_x, author_y), image_author.upper(), font=author_font, fill=(255, 255, 255, 80))
 
     final_image.save(output_path)
-    print(f"✅ Создано изображение: {output_path}")
 
     try:
-        import shutil
-        os.makedirs("/var/www/html/standard", exist_ok=True)
         shutil.copy(output_path, f"/var/www/html/standard/{os.path.basename(output_path)}")
-        print(f"📤 Скопировано в /var/www/html/standard: {os.path.basename(output_path)}")
-    except Exception as e:
-        print(f"❌ Не удалось скопировать в /var/www/html/standard: {e}")
+    except Exception:
+        pass

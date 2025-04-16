@@ -9,27 +9,20 @@ def download_image(url, filename):
             with open(filename, 'wb') as file:
                 for chunk in response.iter_content(1024):
                     file.write(chunk)
-            print(f"✅ Изображение загружено: {filename}")
             return True
-        else:
-            print(f"❌ Ошибка загрузки {url}: статус {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Ошибка при скачивании {url}: {e}")
+        return False
+    except Exception:
         return False
 
 def load_processed_articles(file_path):
     if not os.path.exists(file_path):
         return []
-    with open(file_path, "r", encoding="utf-8") as file:
-        try:
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
             data = json.load(file)
-            if isinstance(data, list):
-                return data
-            else:
-                return []
-        except json.JSONDecodeError:
-            return []
+            return data if isinstance(data, list) else []
+    except json.JSONDecodeError:
+        return []
 
 def save_processed_articles(file_path, articles):
     with open(file_path, "w", encoding="utf-8") as file:
@@ -37,14 +30,9 @@ def save_processed_articles(file_path, articles):
 
 def add_processed_article(file_path, title, url, status="processed"):
     articles = load_processed_articles(file_path)
-    if not isinstance(articles, list):
-        articles = []
-
     articles.append({
         "title": title,
         "url": url,
         "status": status
     })
-
     save_processed_articles(file_path, articles)
-
