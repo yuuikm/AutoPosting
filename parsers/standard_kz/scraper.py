@@ -1,8 +1,10 @@
-import requests
 import os
+import requests
+import json
 import asyncio
 import time
 import random
+from uuid import uuid4
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -118,7 +120,8 @@ async def send_to_social_media(posts, send_message_callback=None):
         file_id = await send_to_telegram(image_path, title, post_url, text_content)
         if not file_id:
             continue
-        public_image_url = f"{STANDARD_PUBLIC_URL}/{os.path.basename(image_path)}"
+        unique_suffix = uuid4().hex[:8]
+        public_image_url = f"{STANDARD_PUBLIC_URL}/{os.path.basename(image_path)}?v={unique_suffix}"
         try:
             publish_to_instagram_standard(public_image_url, post_url, text_content)
         except Exception:
