@@ -11,13 +11,11 @@ def get_hashtags(text_content):
             hashtag_rules = json.load(f)
 
         found_hashtags = set()
-
         for keyword, hashtags in hashtag_rules.items():
             if re.search(rf"\b{re.escape(keyword)}\b", text_content, re.IGNORECASE):
                 found_hashtags.update(hashtags)
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
-
     except Exception as e:
         print(f"⚠️ Ошибка загрузки хештегов: {e}")
         return []
@@ -28,7 +26,6 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
             emoji_rules = json.load(f)
 
         matched_emojis = []
-
         for emoji, keywords in emoji_rules.items():
             if any(re.search(rf"\b{re.escape(word)}\b", text_content, re.IGNORECASE) for word in keywords):
                 matched_emojis.append(emoji)
@@ -39,7 +36,6 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
             matched_emojis = ["📰"]
 
         selected_emoji = " ".join(matched_emojis)
-
         paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
         paragraphs = [p for p in paragraphs if not re.match(r"(?i)^фото[:\s]", p)]
 
@@ -70,26 +66,26 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
         caption = f"{formatted_text}{static_footer}"
 
         upload_url = f"https://graph.facebook.com/v17.0/{STANDARD_INSTAGRAM_ACCOUNT_ID}/media"
-
         data = {
-            'image_url': image_url,
-            'caption': caption,
-            'access_token': STANDARD_ACCESS_TOKEN
+            "image_url": image_url,
+            "caption": caption,
+            "access_token": STANDARD_ACCESS_TOKEN
         }
 
         response = requests.post(upload_url, data=data)
 
         if response.status_code != 200:
-            print(f"❌ Ошибка загрузки изображения: {response.text}")
-            return
+            print(f"❌ Instagram не принял изображение: {data['image_url']}")
+            print(f"📄 Ответ от Instagram: {response.text}")
+            raise Exception("Instagram image upload failed")
 
-        media_id = response.json().get('id')
+        media_id = response.json().get("id")
         print(f"✅ Медиа загружено. Media ID: {media_id}")
 
         publish_url = f"https://graph.facebook.com/v17.0/{STANDARD_INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
-            'creation_id': media_id,
-            'access_token': STANDARD_ACCESS_TOKEN
+            "creation_id": media_id,
+            "access_token": STANDARD_ACCESS_TOKEN
         }
 
         publish_response = requests.post(publish_url, data=publish_data)
@@ -98,6 +94,7 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
             print("🎉 Публикация успешно создана в Instagram (Standard.kz)!")
         else:
             print(f"❌ Ошибка публикации в Instagram: {publish_response.text}")
+            raise Exception("Instagram publish failed")
 
     except Exception as e:
         print(f"⚠️ Ошибка при публикации в Instagram: {e}")

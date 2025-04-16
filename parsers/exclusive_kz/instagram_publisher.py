@@ -2,6 +2,7 @@ import requests
 import re
 import json
 import random
+import os
 from shared.config import EXCLUSIVE_ACCESS_TOKEN, EXCLUSIVE_INSTAGRAM_ACCOUNT_ID
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
 
@@ -17,18 +18,20 @@ def get_hashtags(text_content):
                 found_hashtags.update(hashtags)
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
-
     except Exception as e:
         print(f"⚠️ Ошибка загрузки хештегов: {e}")
         return []
 
-def publish_to_instagram(image_url, post_url, text_content):
+def publish_to_instagram(image_path, post_url, text_content):
     try:
+        if not os.path.exists(image_path):
+            print(f"❌ Файл изображения не найден: {image_path}")
+            return
+
         with open(EMOJI_PATH, "r", encoding="utf-8") as f:
             emoji_rules = json.load(f)
 
         matched_emojis = []
-
         for emoji, keywords in emoji_rules.items():
             if any(re.search(rf"\b{re.escape(word)}\b", text_content, re.IGNORECASE) for word in keywords):
                 matched_emojis.append(emoji)
@@ -39,16 +42,13 @@ def publish_to_instagram(image_url, post_url, text_content):
             matched_emojis = ["📰"]
 
         selected_emoji = " ".join(matched_emojis)
-
         paragraphs = [p.strip() for p in text_content.split("\n") if p.strip()]
-
         paragraphs = [p for p in paragraphs if not re.match(r"(?i)^фото[:\s]", p)]
 
         if paragraphs:
             paragraphs[0] = f"{selected_emoji} {paragraphs[0]}"
 
         formatted_text = "\n\n".join(paragraphs)
-
         formatted_text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', formatted_text)
 
         hashtags = get_hashtags(text_content)
@@ -71,27 +71,29 @@ def publish_to_instagram(image_url, post_url, text_content):
 
         caption = f"{formatted_text}{static_footer}"
 
-        upload_url = f"https://graph.facebook.com/v17.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media"
+        with open(image_path, "rb") as image_file:
+            files = {
+                "image": image_file
+            }
+            data = {
+                "caption": caption,
+                "access_token": EXCLUSIVE_ACCESS_TOKEN
+            }
 
-        data = {
-            'image_url': image_url,
-            'caption': caption,
-            'access_token': EXCLUSIVE_ACCESS_TOKEN
-        }
-
-        response = requests.post(upload_url, data=data)
+            upload_url = f"https://graph.facebook.com/v19.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media"
+            response = requests.post(upload_url, data=data, files=files)
 
         if response.status_code != 200:
             print(f"❌ Ошибка загрузки изображения: {response.text}")
             return
 
-        media_id = response.json().get('id')
+        media_id = response.json().get("id")
         print(f"✅ Медиа загружено. Media ID: {media_id}")
 
-        publish_url = f"https://graph.facebook.com/v17.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media_publish"
+        publish_url = f"https://graph.facebook.com/v19.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
-            'creation_id': media_id,
-            'access_token': EXCLUSIVE_ACCESS_TOKEN
+            "creation_id": media_id,
+            "access_token": EXCLUSIVE_ACCESS_TOKEN
         }
 
         publish_response = requests.post(publish_url, data=publish_data)

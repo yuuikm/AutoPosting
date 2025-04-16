@@ -7,20 +7,21 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR, STANDARD_TARGET_DATE
+from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR, STANDARD_TARGET_DATE, STANDARD_PUBLIC_URL
 from shared.config import USER_AGENT
 from .utils import download_image, load_processed_articles, add_processed_article
 from .image_generator import create_social_media_image
 from .telegram_bot import send_to_telegram, get_telegram_file_url
 from .instagram_publisher import publish_to_instagram_standard
 from .facebook_publisher import publish_to_facebook_standard
+from shared.constants import STANDARD_PROCESSED_FILE
 
 BASE_URLS = [
     "https://standard.kz/ru/post/archive",
     "https://standard.kz/kz/post/archive"
 ]
 
-PROCESSED_FILE = "data/standard_processed.json"
+PROCESSED_FILE = STANDARD_PROCESSED_FILE
 
 def get_dynamic_html(url):
     options = Options()
@@ -140,7 +141,6 @@ def scrape_posts():
 
 
 async def send_to_social_media(posts, send_message_callback=None):
-
     print("🚀 Начинаем публикацию в Telegram, Instagram и Facebook...")
     if send_message_callback:
         await send_message_callback("🚀 Начинаем публикацию в Telegram, Instagram и Facebook...")
@@ -174,14 +174,8 @@ async def send_to_social_media(posts, send_message_callback=None):
         if send_message_callback:
             await send_message_callback(f"✅ Telegram отправлен. file_id: `{file_id}`")
 
-        public_image_url = get_telegram_file_url(file_id)
-
-        if not public_image_url:
-            error_msg = f"❌ Ошибка: не удалось получить URL изображения из Telegram для {title}."
-            print(error_msg)
-            if send_message_callback:
-                await send_message_callback(error_msg)
-            continue
+        # 🔗 Генерация публичной ссылки на картинку для соцсетей
+        public_image_url = f"{STANDARD_PUBLIC_URL}/{os.path.basename(image_path)}"
 
         print(f"📷 Публикация в Instagram: {title}")
         if send_message_callback:

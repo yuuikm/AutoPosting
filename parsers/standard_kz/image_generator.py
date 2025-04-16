@@ -1,3 +1,5 @@
+import os
+import shutil
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 from shared.constants import STANDARD_TEMPLATE_PATH, FONT_PATH
 
@@ -82,3 +84,11 @@ def create_social_media_image(title, image_path, image_author, output_path):
 
     final_image.save(output_path)
     print(f"✅ Создано изображение: {output_path}")
+
+    try:
+        import shutil
+        os.makedirs("/var/www/html/standard", exist_ok=True)
+        shutil.copy(output_path, f"/var/www/html/standard/{os.path.basename(output_path)}")
+        print(f"📤 Скопировано в /var/www/html/standard: {os.path.basename(output_path)}")
+    except Exception as e:
+        print(f"❌ Не удалось скопировать в /var/www/html/standard: {e}")
