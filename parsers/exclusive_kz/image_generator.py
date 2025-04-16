@@ -9,13 +9,11 @@ def extract_photo_author(article_url):
     response = requests.get(article_url, headers=headers)
 
     if response.status_code != 200:
-        print(f"❌ Ошибка загрузки страницы: {article_url}")
         return "Фото: из открытых источников"
 
     soup = BeautifulSoup(response.text, "html.parser")
     content = soup.find("div", class_="entry-content")
     if not content:
-        print("❌ Не найден основной контент статьи")
         return "Фото: из открытых источников"
 
     paragraphs = content.find_all("p")
@@ -127,4 +125,3 @@ def create_social_media_image(title, image_path, output_path, image_author):
     draw.text((author_x, author_y), image_author.upper(), font=author_font, fill=(255, 255, 255, 80))
 
     final_image.save(output_path)
-    print(f"✅ Создано изображение: {output_path} (Шрифт: {font_size}px, Строк: {len(wrapped_text)})")

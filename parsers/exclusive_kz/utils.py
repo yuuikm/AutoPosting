@@ -8,8 +8,6 @@ def download_image(url, filename):
         with open(filename, 'wb') as file:
             for chunk in response.iter_content(1024):
                 file.write(chunk)
-    else:
-        print(f"❌ Не удалось скачать изображение: {url}")
 
 def load_processed_articles(filepath):
     if not os.path.exists(filepath):
@@ -33,4 +31,3 @@ def add_processed_article(file_path, title, url, status="processed"):
             "status": status
         })
         save_processed_articles(file_path, articles)
-

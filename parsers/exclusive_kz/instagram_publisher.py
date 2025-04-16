@@ -12,20 +12,17 @@ def get_hashtags(text_content):
             hashtag_rules = json.load(f)
 
         found_hashtags = set()
-
         for keyword, hashtags in hashtag_rules.items():
             if re.search(rf"\b{re.escape(keyword)}\b", text_content, re.IGNORECASE):
                 found_hashtags.update(hashtags)
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
-    except Exception as e:
-        print(f"⚠️ Ошибка загрузки хештегов: {e}")
+    except:
         return []
 
 def publish_to_instagram(image_path, post_url, text_content):
     try:
         if not os.path.exists(image_path):
-            print(f"❌ Файл изображения не найден: {image_path}")
             return
 
         with open(EMOJI_PATH, "r", encoding="utf-8") as f:
@@ -84,11 +81,9 @@ def publish_to_instagram(image_path, post_url, text_content):
             response = requests.post(upload_url, data=data, files=files)
 
         if response.status_code != 200:
-            print(f"❌ Ошибка загрузки изображения: {response.text}")
             return
 
         media_id = response.json().get("id")
-        print(f"✅ Медиа загружено. Media ID: {media_id}")
 
         publish_url = f"https://graph.facebook.com/v19.0/{EXCLUSIVE_INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
@@ -96,12 +91,7 @@ def publish_to_instagram(image_path, post_url, text_content):
             "access_token": EXCLUSIVE_ACCESS_TOKEN
         }
 
-        publish_response = requests.post(publish_url, data=publish_data)
+        requests.post(publish_url, data=publish_data)
 
-        if publish_response.status_code == 200:
-            print("🎉 Публикация успешно создана в Instagram!")
-        else:
-            print(f"❌ Ошибка публикации в Instagram: {publish_response.text}")
-
-    except Exception as e:
-        print(f"⚠️ Ошибка при публикации в Instagram: {e}")
+    except:
+        pass

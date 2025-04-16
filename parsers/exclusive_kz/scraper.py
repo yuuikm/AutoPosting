@@ -22,19 +22,15 @@ def scrape_page():
 
     processed_articles = load_processed_articles(PROCESSED_FILE)
 
-    print(f"🔍 Собираем новости за {EXCLUSIVE_TARGET_DATE} число")
-
     while url and page_count < max_pages:
         response = requests.get(url, headers={"User-Agent": USER_AGENT})
         if response.status_code != 200:
-            print("❌ Ошибка загрузки страницы")
             break
 
         soup = BeautifulSoup(response.text, "html.parser")
         items = soup.find_all("div", class_="section__item item")
 
         if not items:
-            print("❌ Не найдено ни одной статьи.")
             break
 
         for item in items:
@@ -53,22 +49,18 @@ def scrape_page():
                 continue
 
             if post_day != EXCLUSIVE_TARGET_DATE:
-                print(f"⏩ Пропущена статья за {post_day} число")
                 continue
 
             if title_tag and image_tag and article_url:
                 title = title_tag.get_text(strip=True)
 
                 if any(article.get("title") == title and article.get("status") == "processed" for article in processed_articles):
-                    print(f"⏩ Уже обработано: {title}")
                     continue
 
                 image_url = image_tag.get("src", "").strip()
                 if not image_url:
-                    print(f"❌ Не найдено изображение для: {title}")
                     continue
 
-                print(f"{count}. {title}")
                 image_filename = os.path.join(EXCLUSIVE_IMAGE_DIR, f"{count}.jpg")
                 download_image(image_url, image_filename)
 
@@ -85,11 +77,10 @@ def scrape_page():
                     # if public_image_url:
                     #     publish_to_instagram(public_image_url, article_url, article_content)
                     #     publish_to_facebook(public_image_url, article_url, article_content)
-
                     # else:
-                    #     print("❌ Не удалось получить публичный URL изображения")
+                    #     pass
                 else:
-                    print("❌ Ошибка отправки изображения в Telegram")
+                    pass
 
                 add_processed_article(PROCESSED_FILE, title, article_url)
                 count += 1
@@ -115,7 +106,6 @@ def extract_article_content(article_url):
             quote_text = element.get_text(" ", strip=True)
             cite_tag = element.find("cite")
             cite_text = cite_tag.get_text(" ", strip=True) if cite_tag else ""
-
             formatted_quote = f"{quote_text} — {cite_text}" if cite_text else quote_text
 
             if formatted_quote not in seen_quotes:
@@ -134,5 +124,3 @@ def extract_article_content(article_url):
 
     clean_content = list(dict.fromkeys([line.strip() for line in content if line.strip()]))
     return "\n\n".join(clean_content[:10])
-
-

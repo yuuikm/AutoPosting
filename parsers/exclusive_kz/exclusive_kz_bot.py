@@ -24,22 +24,22 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != USER_ID:
-        await update.message.reply_text("⛔ У тебя нет прав для запуска скрапера.")
+        await update.message.reply_text("У тебя нет прав для запуска скрапера.")
         return
 
-    await update.message.reply_text("🔍 Запускаем скрапер для Exclusive.kz...")
+    await update.message.reply_text("Запускаем скрапер для Exclusive.kz...")
     try:
         await asyncio.to_thread(exclusive_scraper.scrape_page)
-        await update.message.reply_text("✅ Скрапер для Exclusive.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook.")
+        await update.message.reply_text("Скрапер для Exclusive.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook.")
     except Exception as e:
         await update.message.reply_text(f"❌ Произошла ошибка: {e}")
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != USER_ID:
-        await update.message.reply_text("⛔ У тебя нет прав для проверки статуса.")
+        await update.message.reply_text("У тебя нет прав для проверки статуса.")
         return
 
-    await update.message.reply_text("💡 Бот работает и готов к выполнению команд.")
+    await update.message.reply_text("Бот работает и готов к выполнению команд.")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(

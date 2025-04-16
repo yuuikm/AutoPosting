@@ -74,5 +74,5 @@ def publish_to_facebook_standard(image_url, post_url, text_content):
         if response.status_code != 200:
             raise Exception(f"Facebook error: {response.text}")
 
-    except Exception as e:
-        print(f"❌ Ошибка публикации в Facebook: {e}")
+    except:
+        pass

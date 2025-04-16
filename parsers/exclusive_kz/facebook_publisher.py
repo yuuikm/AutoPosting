@@ -18,7 +18,6 @@ def get_hashtags(text_content):
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
 
     except Exception as e:
-        print(f"⚠️ Ошибка загрузки хештегов: {e}")
         return []
 
 def clean_source_spacing(text):
@@ -79,11 +78,7 @@ def publish_to_facebook(image_url, post_url, text_content):
 
         response = requests.post(upload_url, data=data)
 
-        if response.status_code == 200:
-            print("🎉 Публикация успешно создана на Facebook!")
-        else:
-            print(f"❌ Ошибка публикации в Facebook: {response.text}")
 
-    except Exception as e:
-        print(f"⚠️ Ошибка при публикации в Facebook: {e}")
+    except:
+        pass
 

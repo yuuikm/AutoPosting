@@ -89,5 +89,5 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
         if publish_response.status_code != 200:
             raise Exception("Instagram publish failed")
 
-    except Exception as e:
-        print(f"Ошибка публикации в Instagram: {e}")
+    except:
+        pass

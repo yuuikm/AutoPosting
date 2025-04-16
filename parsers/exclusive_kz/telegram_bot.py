@@ -31,7 +31,7 @@ async def send_to_telegram(image_path, title, post_url, text_content):
     if paragraphs:
         paragraphs[0] = f"**{paragraphs[0]}**"
 
-    formatted_text = ("\n\n".join(paragraphs))
+    formatted_text = "\n\n".join(paragraphs)
 
     caption = f"{selected_emoji} {formatted_text}\n\n[🔗 Читать на Exclusive.kz]({post_url})"
 
@@ -49,8 +49,6 @@ async def send_to_telegram(image_path, title, post_url, text_content):
                 parse_mode="Markdown"
             )
 
-    print(f"✅ Публикация отправлена: {title}")
-
     return message.photo[-1].file_id
 
 def get_telegram_file_url(file_id):
@@ -59,8 +57,6 @@ def get_telegram_file_url(file_id):
 
     if response.status_code == 200:
         file_path = response.json()['result']['file_path']
-        file_url = f"https://api.telegram.org/file/bot{EXCLUSIVE_TELEGRAM_BOT_TOKEN}/{file_path}"
-        return file_url
-    else:
-        print(f"❌ Ошибка получения файла из Telegram: {response.text}")
-        return None
+        return f"https://api.telegram.org/file/bot{EXCLUSIVE_TELEGRAM_BOT_TOKEN}/{file_path}"
+
+    return None
