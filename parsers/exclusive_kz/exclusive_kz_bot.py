@@ -24,9 +24,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != USER_ID:
-        await update.message.reply_text("У тебя нет прав для запуска скрапера.")
+        username = update.effective_user.username
+        mention = f"@{username}" if username else update.effective_user.first_name
+        await update.message.reply_text(f"{mention}, пошёл нахуй) у тебя нет прав для запуска скрапера.")
         return
-
 
     await update.message.reply_text("🚀 Запуск скрапера Exclusive.kz")
     try:
@@ -37,10 +38,13 @@ async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != USER_ID:
-        await update.message.reply_text("У тебя нет прав для проверки статуса.")
+        username = update.effective_user.username
+        mention = f"@{username}" if username else update.effective_user.first_name
+        await update.message.reply_text(f"{mention}, пошёл нахуй) у тебя нет прав для проверки статуса.")
         return
 
     await update.message.reply_text("🚀 Бот работает и готов к выполнению команд.")
+
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(

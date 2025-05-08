@@ -2,6 +2,7 @@ import requests
 import re
 import json
 import random
+import traceback
 from shared.config import STANDARD_ACCESS_TOKEN, STANDARD_FACEBOOK_PAGE_ID
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
 
@@ -17,6 +18,9 @@ def get_hashtags(text_content):
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
     except Exception as e:
+        print("Ошибка в get_hashtags:")
+        print(f"{type(e).__name__}: {e}")
+        traceback.print_exc()
         return []
 
 def clean_source_spacing(text):
@@ -72,7 +76,9 @@ def publish_to_facebook_standard(image_url, post_url, text_content):
         )
 
         if response.status_code != 200:
-            raise Exception(f"Facebook error: {response.text}")
+            raise Exception(f"Facebook error: {response.status_code} - {response.text}")
 
-    except:
-        pass
+    except Exception as e:
+        print("❌ Ошибка при публикации в Facebook:")
+        print(f"{type(e).__name__}: {e}")
+        traceback.print_exc()
