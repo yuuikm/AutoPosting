@@ -25,21 +25,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrandr2 \
     ca-certificates \
     fonts-liberation \
+    chromium \
+    chromium-driver \
     && rm -rf /var/lib/apt/lists/*
-
-RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-chrome.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | awk -F. '{print $1}') && \
-    DRIVERS_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" | grep -o "\"version\":\"$CHROME_VERSION\.[0-9]\+\.[0-9]\+\.[0-9]\+\"" | head -n 1 | cut -d'"' -f4) && \
-    if [ -z "$DRIVERS_VERSION" ]; then DRIVERS_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json" | grep -o "\"version\":\"[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\"" | head -n 1 | cut -d'"' -f4); fi && \
-    curl -sLo /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/$DRIVERS_VERSION/linux64/chromedriver-linux64.zip" && \
-    unzip /tmp/chromedriver.zip -d /tmp/ && \
-    mv /tmp/chromedriver-linux64/chromedriver /usr/bin/chromedriver && \
-    chmod +x /usr/bin/chromedriver && \
-    rm /tmp/chromedriver.zip && rm -rf /tmp/chromedriver-linux64
 
 WORKDIR /app
 
