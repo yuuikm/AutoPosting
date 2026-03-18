@@ -1,24 +1,31 @@
+import logging
 import re
 import json
 import requests
 from telegram import Bot, error
-from shared.config import STANDARD_TELEGRAM_BOT_TOKEN, STANDARD_TELEGRAM_CHANNEL_ID
+from shared.config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHANNEL_ID
 from shared.constants import EMOJI_PATH
+
+logger = logging.getLogger(__name__)
 
 CAPTION_LIMIT = 1024
 TEXT_LIMIT = CAPTION_LIMIT - 50
 
+
 def escape_html(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
 
 def clean_text(text):
     text = re.sub(r"\[.*?\]", "", text)
     text = re.sub(r"\(https?:\/\/[^\s]+?\)", "", text)
     return re.sub(r"\s+", " ", text).strip()
 
+
 def format_text_with_tabs(text):
     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
     return "\n\n".join(paragraphs)
+
 
 async def send_to_telegram(image_path, title, post_url, text_content, send_message_callback=None):
     try:
@@ -43,10 +50,10 @@ async def send_to_telegram(image_path, title, post_url, text_content, send_messa
             truncated = re.sub(r"[^.!?]*$", "", truncated)
             caption = f"{selected_emoji} {truncated}\n\n<a href='{safe_post_url}'>🔗 Читать на Standard.kz</a>"
 
-        async with Bot(token=STANDARD_TELEGRAM_BOT_TOKEN) as bot:
+        async with Bot(token=TELEGRAM_BOT_TOKEN) as bot:
             with open(image_path, "rb") as image:
                 message = await bot.send_photo(
-                    chat_id=STANDARD_TELEGRAM_CHANNEL_ID,
+                    chat_id=TELEGRAM_CHANNEL_ID,
                     photo=image,
                     caption=caption,
                     parse_mode="HTML"
@@ -58,14 +65,16 @@ async def send_to_telegram(image_path, title, post_url, text_content, send_messa
         return message.photo[-1].file_id
 
     except (error.BadRequest, error.TelegramError, Exception) as e:
+        logger.error("Telegram publish failed: %s", e)
         if send_message_callback:
             await send_message_callback(f"Telegram ошибка: {e}")
         return None
 
+
 def get_telegram_file_url(file_id):
-    url = f"https://api.telegram.org/bot{STANDARD_TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getFile?file_id={file_id}"
     response = requests.get(url)
     if response.status_code == 200:
         path = response.json()['result']['file_path']
-        return f"https://api.telegram.org/file/bot{STANDARD_TELEGRAM_BOT_TOKEN}/{path}"
+        return f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{path}"
     return None

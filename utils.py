@@ -2,6 +2,7 @@ import json
 import os
 import requests
 
+
 def download_image(url, filename):
     try:
         response = requests.get(url, stream=True)
@@ -14,6 +15,7 @@ def download_image(url, filename):
     except Exception:
         return False
 
+
 def load_processed_articles(file_path):
     if not os.path.exists(file_path):
         return []
@@ -24,9 +26,11 @@ def load_processed_articles(file_path):
     except json.JSONDecodeError:
         return []
 
+
 def save_processed_articles(file_path, articles):
     with open(file_path, "w", encoding="utf-8") as file:
         json.dump(articles, file, ensure_ascii=False, indent=4)
+
 
 def add_processed_article(file_path, title, url, status="processed"):
     articles = load_processed_articles(file_path)

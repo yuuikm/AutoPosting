@@ -1,10 +1,13 @@
+import logging
 import requests
 import re
 import json
 import random
-import traceback
-from shared.config import STANDARD_ACCESS_TOKEN, STANDARD_FACEBOOK_PAGE_ID
+from shared.config import ACCESS_TOKEN, FACEBOOK_PAGE_ID
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
+
+logger = logging.getLogger(__name__)
+
 
 def get_hashtags(text_content):
     try:
@@ -18,10 +21,9 @@ def get_hashtags(text_content):
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
     except Exception as e:
-        print("Ошибка в get_hashtags:")
-        print(f"{type(e).__name__}: {e}")
-        traceback.print_exc()
+        logger.error("Error in get_hashtags: %s", e, exc_info=True)
         return []
+
 
 def clean_source_spacing(text):
     return re.sub(
@@ -30,7 +32,8 @@ def clean_source_spacing(text):
         text
     )
 
-def publish_to_facebook_standard(image_url, post_url, text_content):
+
+def publish_to_facebook(image_url, post_url, text_content):
     try:
         with open(EMOJI_PATH, "r", encoding="utf-8") as f:
             emoji_rules = json.load(f)
@@ -67,11 +70,11 @@ def publish_to_facebook_standard(image_url, post_url, text_content):
         )
 
         response = requests.post(
-            f"https://graph.facebook.com/v17.0/{STANDARD_FACEBOOK_PAGE_ID}/photos",
+            f"https://graph.facebook.com/v17.0/{FACEBOOK_PAGE_ID}/photos",
             data={
                 "url": image_url,
                 "message": caption,
-                "access_token": STANDARD_ACCESS_TOKEN
+                "access_token": ACCESS_TOKEN
             }
         )
 
@@ -79,6 +82,4 @@ def publish_to_facebook_standard(image_url, post_url, text_content):
             raise Exception(f"Facebook error: {response.status_code} - {response.text}")
 
     except Exception as e:
-        print("❌ Ошибка при публикации в Facebook:")
-        print(f"{type(e).__name__}: {e}")
-        traceback.print_exc()
+        logger.error("Facebook publish failed: %s", e, exc_info=True)

@@ -1,6 +1,6 @@
+import logging
 import os
 import requests
-import json
 import asyncio
 import time
 import random
@@ -9,21 +9,21 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from shared.constants import STANDARD_IMAGE_DIR, STANDARD_OUTPUT_DIR, STANDARD_TARGET_DATE, STANDARD_PUBLIC_URL
+from shared.constants import IMAGE_DIR, OUTPUT_DIR, TARGET_DATE, PUBLIC_URL, PROCESSED_FILE
 from shared.config import USER_AGENT
-from .utils import download_image, load_processed_articles, add_processed_article
-from .image_generator import create_social_media_image
-from .telegram_bot import send_to_telegram, get_telegram_file_url
-from .instagram_publisher import publish_to_instagram_standard
-from .facebook_publisher import publish_to_facebook_standard
-from shared.constants import STANDARD_PROCESSED_FILE
+from utils import download_image, load_processed_articles, add_processed_article
+from image_generator import create_social_media_image
+from publishers.telegram import send_to_telegram
+from publishers.instagram import publish_to_instagram
+from publishers.facebook import publish_to_facebook
+
+logger = logging.getLogger(__name__)
 
 BASE_URLS = [
     "https://standard.kz/ru/post/archive",
     "https://standard.kz/kz/post/archive"
 ]
 
-PROCESSED_FILE = STANDARD_PROCESSED_FILE
 
 def get_dynamic_html(url):
     options = Options()
@@ -37,6 +37,7 @@ def get_dynamic_html(url):
     html = driver.page_source
     driver.quit()
     return html
+
 
 def extract_article_content(article_url):
     response = requests.get(article_url, headers={"User-Agent": USER_AGENT})
@@ -63,6 +64,7 @@ def extract_article_content(article_url):
             seen.add(line)
     return "\n\n".join(clean_content[:10])
 
+
 def scrape_posts():
     count = 1
     processed_articles = load_processed_articles(PROCESSED_FILE)
@@ -77,7 +79,7 @@ def scrape_posts():
                 continue
             post_datetime = cols[0].text.strip()
             post_date, _ = post_datetime.split(" ")
-            if post_date != STANDARD_TARGET_DATE:
+            if post_date != TARGET_DATE:
                 continue
             title_tag = cols[1].find("a")
             if not title_tag:
@@ -95,9 +97,9 @@ def scrape_posts():
             image_url = "https://standard.kz" + image_tag["src"].strip() if image_tag else ""
             if not image_url:
                 continue
-            image_filename = os.path.join(STANDARD_IMAGE_DIR, f"{count}.jpg")
+            image_filename = os.path.join(IMAGE_DIR, f"{count}.jpg")
             download_image(image_url, image_filename)
-            output_image_path = os.path.join(STANDARD_OUTPUT_DIR, f"post_{count}.png")
+            output_image_path = os.path.join(OUTPUT_DIR, f"post_{count}.png")
             create_social_media_image(title, image_filename, image_author, output_image_path)
             posts.append({
                 "image_path": output_image_path,
@@ -108,6 +110,7 @@ def scrape_posts():
             add_processed_article(PROCESSED_FILE, title, post_url)
             count += 1
     asyncio.run(send_to_social_media(posts))
+
 
 async def send_to_social_media(posts, send_message_callback=None):
     if not posts:
@@ -121,13 +124,13 @@ async def send_to_social_media(posts, send_message_callback=None):
         if not file_id:
             continue
         unique_suffix = uuid4().hex[:8]
-        public_image_url = f"{STANDARD_PUBLIC_URL}/{os.path.basename(image_path)}?v={unique_suffix}"
+        public_image_url = f"{PUBLIC_URL}/{os.path.basename(image_path)}?v={unique_suffix}"
         try:
-            publish_to_instagram_standard(public_image_url, post_url, text_content)
+            publish_to_instagram(public_image_url, post_url, text_content)
         except Exception:
             pass
         try:
-            publish_to_facebook_standard(public_image_url, post_url, text_content)
+            publish_to_facebook(public_image_url, post_url, text_content)
         except Exception:
             pass
         if index < len(posts) - 1:

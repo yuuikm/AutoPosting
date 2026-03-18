@@ -1,7 +1,8 @@
 import os
 import shutil
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
-from shared.constants import STANDARD_TEMPLATE_PATH, FONT_PATH
+from shared.constants import TEMPLATE_PATH, FONT_PATH
+
 
 def wrap_text(draw, text, font, max_width):
     words = text.split()
@@ -21,8 +22,9 @@ def wrap_text(draw, text, font, max_width):
     lines.append(current_line)
     return "\n".join(lines)
 
+
 def create_social_media_image(title, image_path, image_author, output_path):
-    template = Image.open(STANDARD_TEMPLATE_PATH).convert("RGBA")
+    template = Image.open(TEMPLATE_PATH).convert("RGBA")
     news_image = Image.open(image_path).convert("RGB")
 
     color_enhancer = ImageEnhance.Color(news_image)

@@ -1,9 +1,13 @@
+import logging
 import requests
 import re
 import json
 import random
-from shared.config import STANDARD_ACCESS_TOKEN, STANDARD_INSTAGRAM_ACCOUNT_ID
+from shared.config import ACCESS_TOKEN, INSTAGRAM_ACCOUNT_ID
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
+
+logger = logging.getLogger(__name__)
+
 
 def get_hashtags(text_content):
     try:
@@ -16,10 +20,12 @@ def get_hashtags(text_content):
                 found_hashtags.update(hashtags)
 
         return random.sample(list(found_hashtags), min(len(found_hashtags), 3)) if found_hashtags else []
-    except:
+    except Exception as e:
+        logger.error("Error in get_hashtags: %s", e, exc_info=True)
         return []
 
-def publish_to_instagram_standard(image_url, post_url, text_content):
+
+def publish_to_instagram(image_url, post_url, text_content):
     try:
         with open(EMOJI_PATH, "r", encoding="utf-8") as f:
             emoji_rules = json.load(f)
@@ -64,11 +70,11 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
 
         caption = f"{formatted_text}{static_footer}"
 
-        upload_url = f"https://graph.facebook.com/v17.0/{STANDARD_INSTAGRAM_ACCOUNT_ID}/media"
+        upload_url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ACCOUNT_ID}/media"
         data = {
             "image_url": image_url,
             "caption": caption,
-            "access_token": STANDARD_ACCESS_TOKEN
+            "access_token": ACCESS_TOKEN
         }
 
         response = requests.post(upload_url, data=data)
@@ -78,10 +84,10 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
 
         media_id = response.json().get("id")
 
-        publish_url = f"https://graph.facebook.com/v17.0/{STANDARD_INSTAGRAM_ACCOUNT_ID}/media_publish"
+        publish_url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
             "creation_id": media_id,
-            "access_token": STANDARD_ACCESS_TOKEN
+            "access_token": ACCESS_TOKEN
         }
 
         publish_response = requests.post(publish_url, data=publish_data)
@@ -89,5 +95,5 @@ def publish_to_instagram_standard(image_url, post_url, text_content):
         if publish_response.status_code != 200:
             raise Exception("Instagram publish failed")
 
-    except:
-        pass
+    except Exception as e:
+        logger.error("Instagram publish failed: %s", e, exc_info=True)
