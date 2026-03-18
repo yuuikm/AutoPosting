@@ -95,5 +95,8 @@ def publish_to_instagram(image_url, post_url, text_content):
         if publish_response.status_code != 200:
             raise Exception("Instagram publish failed")
 
+        return True
+
     except Exception as e:
         logger.error("Instagram publish failed: %s", e, exc_info=True)
+        return False

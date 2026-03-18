@@ -81,5 +81,8 @@ def publish_to_facebook(image_url, post_url, text_content):
         if response.status_code != 200:
             raise Exception(f"Facebook error: {response.status_code} - {response.text}")
 
+        return True
+
     except Exception as e:
         logger.error("Facebook publish failed: %s", e, exc_info=True)
+        return False

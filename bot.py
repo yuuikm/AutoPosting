@@ -10,6 +10,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def format_summary(stats):
+    if stats["total"] == 0:
+        return "📭 Новых статей не найдено."
+
+    lines = [
+        f"📊 Скрапер завершил работу.\n",
+        f"📰 Всего статей: {stats['total']}\n",
+        f"✅ Telegram: {stats['telegram']}/{stats['total']}"
+        + (f" (❌ {stats['telegram_fail']} не опубликовано)" if stats['telegram_fail'] else ""),
+        f"✅ Instagram: {stats['instagram']}/{stats['total']}"
+        + (f" (❌ {stats['instagram_fail']} не опубликовано)" if stats['instagram_fail'] else ""),
+        f"✅ Facebook: {stats['facebook']}/{stats['total']}"
+        + (f" (❌ {stats['facebook_fail']} не опубликовано)" if stats['facebook_fail'] else ""),
+    ]
+    return "\n".join(lines)
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🚀 Standard.kz бот активен. Напиши /run для запуска.")
 
@@ -21,8 +38,8 @@ async def run_scraper(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("🚀 Запуск скрапера Standard.kz")
 
     try:
-        await asyncio.to_thread(scraper.scrape_posts)
-        await update.message.reply_text("Скрапер для Standard.kz завершил работу. Публикации отправлены в Telegram, Instagram и Facebook.")
+        stats = await asyncio.to_thread(scraper.scrape_posts)
+        await update.message.reply_text(format_summary(stats))
     except Exception as e:
         logger.error("Scraper failed: %s", e, exc_info=True)
         await update.message.reply_text(f"❌ Произошла ошибка: {e}")

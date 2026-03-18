@@ -32,11 +32,22 @@ def save_processed_articles(file_path, articles):
         json.dump(articles, file, ensure_ascii=False, indent=4)
 
 
-def add_processed_article(file_path, title, url, status="processed"):
+def add_processed_article(file_path, title, url):
     articles = load_processed_articles(file_path)
     articles.append({
         "title": title,
         "url": url,
-        "status": status
+        "telegram": False,
+        "instagram": False,
+        "facebook": False
     })
+    save_processed_articles(file_path, articles)
+
+
+def update_article_status(file_path, title, platform, success):
+    articles = load_processed_articles(file_path)
+    for article in articles:
+        if article.get("title") == title:
+            article[platform] = success
+            break
     save_processed_articles(file_path, articles)

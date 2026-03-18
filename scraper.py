@@ -11,7 +11,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from shared.constants import IMAGE_DIR, OUTPUT_DIR, TARGET_DATE, PUBLIC_URL, PROCESSED_FILE
 from shared.config import USER_AGENT
-from utils import download_image, load_processed_articles, add_processed_article
+from utils import download_image, load_processed_articles, add_processed_article, update_article_status
 from image_generator import create_social_media_image
 from publishers.telegram import send_to_telegram
 from publishers.instagram import publish_to_instagram
@@ -109,29 +109,61 @@ def scrape_posts():
             })
             add_processed_article(PROCESSED_FILE, title, post_url)
             count += 1
-    asyncio.run(send_to_social_media(posts))
+    summary = asyncio.run(send_to_social_media(posts))
+    return summary
 
 
 async def send_to_social_media(posts, send_message_callback=None):
+    stats = {"total": len(posts), "telegram": 0, "instagram": 0, "facebook": 0,
+             "telegram_fail": 0, "instagram_fail": 0, "facebook_fail": 0}
+
     if not posts:
-        return
+        return stats
+
     for index, post in enumerate(posts):
         image_path = post["image_path"]
         post_url = post["post_url"]
         text_content = post["text_content"]
         title = post["title"]
+
+        # Telegram
         file_id = await send_to_telegram(image_path, title, post_url, text_content)
-        if not file_id:
-            continue
+        tg_ok = file_id is not None
+        if tg_ok:
+            stats["telegram"] += 1
+        else:
+            stats["telegram_fail"] += 1
+        update_article_status(PROCESSED_FILE, title, "telegram", tg_ok)
+
+        # Instagram & Facebook need public URL
         unique_suffix = uuid4().hex[:8]
         public_image_url = f"{PUBLIC_URL}/{os.path.basename(image_path)}?v={unique_suffix}"
+
+        # Instagram
+        ig_ok = False
         try:
-            publish_to_instagram(public_image_url, post_url, text_content)
+            ig_ok = publish_to_instagram(public_image_url, post_url, text_content)
         except Exception:
             pass
+        if ig_ok:
+            stats["instagram"] += 1
+        else:
+            stats["instagram_fail"] += 1
+        update_article_status(PROCESSED_FILE, title, "instagram", ig_ok)
+
+        # Facebook
+        fb_ok = False
         try:
-            publish_to_facebook(public_image_url, post_url, text_content)
+            fb_ok = publish_to_facebook(public_image_url, post_url, text_content)
         except Exception:
             pass
+        if fb_ok:
+            stats["facebook"] += 1
+        else:
+            stats["facebook_fail"] += 1
+        update_article_status(PROCESSED_FILE, title, "facebook", fb_ok)
+
         if index < len(posts) - 1:
             await asyncio.sleep(random.randint(250, 600))
+
+    return stats
