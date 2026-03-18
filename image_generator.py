@@ -84,9 +84,9 @@ def create_social_media_image(title, image_path, image_author, output_path):
     author_y = 975
     draw.text((author_x, author_y), image_author.upper(), font=author_font, fill=(255, 255, 255, 80))
 
-    final_image.save(output_path)
+    final_image.save(output_path, "JPEG", quality=95)
 
     try:
-        shutil.copy(output_path, f"/var/www/html/standard/{os.path.basename(output_path)}")
-    except Exception:
-        pass
+        shutil.copy(output_path, f"/app/odyx_standard/{os.path.basename(output_path)}")
+    except Exception as e:
+        print(f"Error copying to odyx_standard: {e}")

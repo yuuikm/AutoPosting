@@ -3,6 +3,7 @@ import requests
 import re
 import json
 import random
+import time
 from shared.config import ACCESS_TOKEN, INSTAGRAM_ACCOUNT_ID
 from shared.constants import EMOJI_PATH, HASHTAGS_PATH
 
@@ -70,21 +71,26 @@ def publish_to_instagram(image_url, post_url, text_content):
 
         caption = f"{formatted_text}{static_footer}"
 
-        upload_url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ACCOUNT_ID}/media"
+        upload_url = f"https://graph.facebook.com/v22.0/{INSTAGRAM_ACCOUNT_ID}/media"
+
         data = {
             "image_url": image_url,
             "caption": caption,
             "access_token": ACCESS_TOKEN
         }
 
+        time.sleep(5)
+
         response = requests.post(upload_url, data=data)
 
         if response.status_code != 200:
-            raise Exception("Instagram image upload failed")
+            logger.error("Instagram image upload failed! Status: %s, Response: %s, Headers: %s", 
+                         response.status_code, response.text, response.headers)
+            raise Exception(f"Instagram image upload failed: {response.text}")
 
         media_id = response.json().get("id")
 
-        publish_url = f"https://graph.facebook.com/v17.0/{INSTAGRAM_ACCOUNT_ID}/media_publish"
+        publish_url = f"https://graph.facebook.com/v22.0/{INSTAGRAM_ACCOUNT_ID}/media_publish"
         publish_data = {
             "creation_id": media_id,
             "access_token": ACCESS_TOKEN
@@ -93,7 +99,8 @@ def publish_to_instagram(image_url, post_url, text_content):
         publish_response = requests.post(publish_url, data=publish_data)
 
         if publish_response.status_code != 200:
-            raise Exception("Instagram publish failed")
+            logger.error("Instagram publish failed: %s", publish_response.text)
+            raise Exception(f"Instagram publish failed: {publish_response.text}")
 
         return True
 

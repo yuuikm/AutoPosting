@@ -9,6 +9,7 @@ services:
       - CHROMEDRIVER_PATH=/usr/bin/chromedriver
     volumes:
       - ./data:/app/data
+      - /home/mark/projects/odyx/standard:/app/odyx_standard
     logging:
       driver: "json-file"
       options:

@@ -8,7 +8,7 @@ TEMPLATE_PATH = os.path.join(BASE_DIR, "data", "templates", "standard-post.png")
 IMAGE_DIR = os.path.join(BASE_DIR, "data", "standard_scraped_images")
 OUTPUT_DIR = os.path.join(BASE_DIR, "data", "standard_generated_posts")
 PROCESSED_FILE = os.path.join(BASE_DIR, "data", "standard_processed.json")
-PUBLIC_URL = "https://refreshme.cloud/standard"
+PUBLIC_URL = "https://img.odyx.cc"
 
 EMOJI_PATH = os.path.join(BASE_DIR, "data", "emoji_rules.json")
 HASHTAGS_PATH = os.path.join(BASE_DIR, "data", "hashtags.json")

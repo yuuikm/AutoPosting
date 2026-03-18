@@ -101,9 +101,10 @@ def scrape_posts():
             image_url = "https://standard.kz" + image_tag["src"].strip() if image_tag else ""
             if not image_url:
                 continue
-            image_filename = os.path.join(IMAGE_DIR, f"{count}.jpg")
+            image_uuid = uuid4().hex
+            image_filename = os.path.join(IMAGE_DIR, f"{image_uuid}.jpg")
             download_image(image_url, image_filename)
-            output_image_path = os.path.join(OUTPUT_DIR, f"post_{count}.png")
+            output_image_path = os.path.join(OUTPUT_DIR, f"post_{image_uuid}.jpg")
             create_social_media_image(title, image_filename, image_author, output_image_path)
             posts.append({
                 "image_path": output_image_path,
@@ -140,8 +141,8 @@ async def send_to_social_media(posts, send_message_callback=None):
         update_article_status(PROCESSED_FILE, title, "telegram", tg_ok)
 
         # Instagram & Facebook need public URL
-        unique_suffix = uuid4().hex[:8]
-        public_image_url = f"{PUBLIC_URL}/{os.path.basename(image_path)}?v={unique_suffix}"
+        public_image_url = f"{PUBLIC_URL}/{os.path.basename(image_path)}"
+        logger.info(f"Using public image URL: {public_image_url}")
 
         # Instagram
         ig_ok = False
