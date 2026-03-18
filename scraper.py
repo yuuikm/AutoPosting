@@ -30,7 +30,10 @@ def get_dynamic_html(url):
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
-    service = Service("/usr/bin/chromedriver")
+    options.add_argument("--disable-dev-shm-usage")  # Added for stability in containers
+    
+    chromedriver_path = os.getenv("CHROMEDRIVER_PATH", "/usr/bin/chromedriver")
+    service = Service(chromedriver_path)
     driver = webdriver.Chrome(service=service, options=options)
     driver.get(url)
     time.sleep(5)

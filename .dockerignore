@@ -1,0 +1,14 @@
+venv/
+.env
+.git/
+.gitignore
+.idea/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.db
+data/exclusive_generated_posts/
+data/exclusive_scraped_images/
+data/standard_generated_posts/
+data/standard_scraped_images/
