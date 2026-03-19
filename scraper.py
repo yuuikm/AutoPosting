@@ -9,7 +9,8 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from shared.constants import IMAGE_DIR, OUTPUT_DIR, TARGET_DATE, PUBLIC_URL, PROCESSED_FILE
+from datetime import datetime
+from shared.constants import IMAGE_DIR, OUTPUT_DIR, PUBLIC_URL, PROCESSED_FILE
 from shared.config import USER_AGENT
 from utils import download_image, load_processed_articles, add_processed_article, update_article_status
 from image_generator import create_social_media_image
@@ -71,6 +72,7 @@ def extract_article_content(article_url):
 
 def scrape_posts():
     count = 1
+    target_date = datetime.now().strftime("%d.%m.%Y")
     processed_articles = load_processed_articles(PROCESSED_FILE)
     posts = []
     for base_url in BASE_URLS:
@@ -83,7 +85,7 @@ def scrape_posts():
                 continue
             post_datetime = cols[0].text.strip()
             post_date, _ = post_datetime.split(" ")
-            if post_date != TARGET_DATE:
+            if post_date != target_date:
                 continue
             title_tag = cols[1].find("a")
             if not title_tag:

@@ -3,12 +3,12 @@ from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-TARGET_DATE = datetime.now().strftime("%d.%m.%Y")
+# TARGET_DATE will be calculated dynamically in the scraper to handle multi-day runs.
 TEMPLATE_PATH = os.path.join(BASE_DIR, "data", "templates", "standard-post.png")
 IMAGE_DIR = os.path.join(BASE_DIR, "data", "standard_scraped_images")
 OUTPUT_DIR = os.path.join(BASE_DIR, "data", "standard_generated_posts")
 PROCESSED_FILE = os.path.join(BASE_DIR, "data", "standard_processed.json")
-PUBLIC_URL = "https://img.odyx.cc"
+PUBLIC_URL = "http://img.odyx.cc"
 
 EMOJI_PATH = os.path.join(BASE_DIR, "data", "emoji_rules.json")
 HASHTAGS_PATH = os.path.join(BASE_DIR, "data", "hashtags.json")
