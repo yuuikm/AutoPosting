@@ -1,9 +1,72 @@
 [
     {
-        "title": "В Кении пресекли вывоз 2000 живых муравьев в Китай",
-        "url": "https://standard.kz/ru/post/2026_03_v-kenii-presekli-vyvoz-2000-zivyx-muravev-v-kitai-278",
+        "title": "Каким источникам информации доверяют казахстанцы?",
+        "url": "https://standard.kz/ru/post/2026_04_kakim-istocnikam-informacii-doveriaiut-kazaxstancy-223",
         "telegram": true,
         "instagram": true,
+        "facebook": false
+    },
+    {
+        "title": "Тегеран назвал главное условие для мира с США",
+        "url": "https://standard.kz/ru/post/2026_04_tegeran-nazval-glavnoe-uslovie-dlia-mira-s-ssa-481",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "Что делать, если вы забыли вещи в поезде или на вокзале?",
+        "url": "https://standard.kz/ru/post/2026_04_cto-delat-esli-vy-zabyli-veshhi-v-poezde-ili-na-vokzale-467",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "Крупнейший регион Казахстана сталкивается с дефицитом высшего образования",
+        "url": "https://standard.kz/ru/post/2026_04_krupneisii-region-kazaxstana-stalkivaetsia-s-deficitom-vyssego-obrazovaniia-181",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "В КазНУ создали telegram-бот, который способен преобразовать фото в 3D-модель",
+        "url": "https://standard.kz/ru/post/2026_04_v-kaznu-sozdali-telegram-bot-kotoryi-sposoben-preobrazovat-foto-v-3d-model-394",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "Количество ДТП на дорогах Казахстана растет",
+        "url": "https://standard.kz/ru/post/2026_04_kolicestvo-dtp-na-dorogax-kazaxstana-rastet-297",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "В Актобе спасли ребенка, который упал в колодец",
+        "url": "https://standard.kz/ru/post/2026_04_v-aktobe-spasli-rebenka-kotoryi-upal-v-kolodec-348",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "Бүгіннен бастап елімізде не өзгереді",
+        "url": "https://standard.kz/kz/post/2026_04_buginnen-bastap-elimizde-ne-ozgeredi-456",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "Биыл елімізде пилдотсыз автомобильдер іске қосылады",
+        "url": "https://standard.kz/kz/post/2026_04_biyl-elimizde-pildotsyz-avtomobilder-iske-qosylady-295",
+        "telegram": false,
+        "instagram": false,
+        "facebook": false
+    },
+    {
+        "title": "Жолаушы пойызда немесе вокзалда затын ұмытса, не істеу керек",
+        "url": "https://standard.kz/kz/post/2026_04_zolausy-poiyzda-nemese-vokzalda-zatyn-umytsa-ne-isteu-kerek-233",
+        "telegram": false,
+        "instagram": false,
         "facebook": false
     }
 ]

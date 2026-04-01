@@ -50,7 +50,7 @@ def extract_article_content(article_url):
         return ""
     soup = BeautifulSoup(response.text, "html.parser")
     content = []
-    article_body = soup.find("div", class_="entry__article")
+    article_body = soup.find("div", class_="article-content")
     if not article_body:
         return ""
     for element in article_body.find_all(["p", "blockquote", "strong", "a"], recursive=True):
@@ -96,11 +96,15 @@ def scrape_posts():
                 continue
             post_response = requests.get(post_url, headers={"User-Agent": USER_AGENT})
             post_soup = BeautifulSoup(post_response.text, "html.parser")
-            image_tag = post_soup.select_one("div.entry__img-holder img")
-            author_tag = post_soup.select_one("div.entry__img-holder span")
+            image_tag = post_soup.select_one("img.article-image")
+            author_tag = post_soup.select_one("p.image-caption")
             image_author = author_tag.text.strip() if author_tag else "Источник: Standard.kz"
             text_content = extract_article_content(post_url)
-            image_url = "https://standard.kz" + image_tag["src"].strip() if image_tag else ""
+            if image_tag:
+                img_src = image_tag["src"].strip()
+                image_url = img_src if img_src.startswith("http") else "https://standard.kz" + img_src
+            else:
+                image_url = ""
             if not image_url:
                 continue
             image_uuid = uuid4().hex
